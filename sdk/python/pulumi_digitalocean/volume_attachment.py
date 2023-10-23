@@ -31,7 +31,13 @@ class VolumeAttachmentArgs:
              _setter: Callable[[Any, Any], None],
              droplet_id: pulumi.Input[int],
              volume_id: pulumi.Input[str],
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'dropletId' in kwargs:
+            droplet_id = kwargs['dropletId']
+        if 'volumeId' in kwargs:
+            volume_id = kwargs['volumeId']
+
         _setter("droplet_id", droplet_id)
         _setter("volume_id", volume_id)
 
@@ -80,7 +86,13 @@ class _VolumeAttachmentState:
              _setter: Callable[[Any, Any], None],
              droplet_id: Optional[pulumi.Input[int]] = None,
              volume_id: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'dropletId' in kwargs:
+            droplet_id = kwargs['dropletId']
+        if 'volumeId' in kwargs:
+            volume_id = kwargs['volumeId']
+
         if droplet_id is not None:
             _setter("droplet_id", droplet_id)
         if volume_id is not None:

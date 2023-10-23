@@ -31,7 +31,11 @@ class DropletSnapshotArgs:
              _setter: Callable[[Any, Any], None],
              droplet_id: pulumi.Input[str],
              name: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'dropletId' in kwargs:
+            droplet_id = kwargs['dropletId']
+
         _setter("droplet_id", droplet_id)
         if name is not None:
             _setter("name", name)
@@ -97,7 +101,15 @@ class _DropletSnapshotState:
              name: Optional[pulumi.Input[str]] = None,
              regions: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
              size: Optional[pulumi.Input[float]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'createdAt' in kwargs:
+            created_at = kwargs['createdAt']
+        if 'dropletId' in kwargs:
+            droplet_id = kwargs['dropletId']
+        if 'minDiskSize' in kwargs:
+            min_disk_size = kwargs['minDiskSize']
+
         if created_at is not None:
             _setter("created_at", created_at)
         if droplet_id is not None:

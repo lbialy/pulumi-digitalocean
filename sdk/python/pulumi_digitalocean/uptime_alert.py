@@ -53,7 +53,11 @@ class UptimeAlertArgs:
              name: Optional[pulumi.Input[str]] = None,
              period: Optional[pulumi.Input[str]] = None,
              threshold: Optional[pulumi.Input[int]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'checkId' in kwargs:
+            check_id = kwargs['checkId']
+
         _setter("check_id", check_id)
         _setter("notifications", notifications)
         _setter("type", type)
@@ -191,7 +195,11 @@ class _UptimeAlertState:
              period: Optional[pulumi.Input[str]] = None,
              threshold: Optional[pulumi.Input[int]] = None,
              type: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'checkId' in kwargs:
+            check_id = kwargs['checkId']
+
         if check_id is not None:
             _setter("check_id", check_id)
         if comparison is not None:

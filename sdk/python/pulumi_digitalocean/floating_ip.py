@@ -35,7 +35,13 @@ class FloatingIpArgs:
              region: pulumi.Input[str],
              droplet_id: Optional[pulumi.Input[int]] = None,
              ip_address: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'dropletId' in kwargs:
+            droplet_id = kwargs['dropletId']
+        if 'ipAddress' in kwargs:
+            ip_address = kwargs['ipAddress']
+
         _setter("region", region)
         if droplet_id is not None:
             _setter("droplet_id", droplet_id)
@@ -107,7 +113,15 @@ class _FloatingIpState:
              floating_ip_urn: Optional[pulumi.Input[str]] = None,
              ip_address: Optional[pulumi.Input[str]] = None,
              region: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'dropletId' in kwargs:
+            droplet_id = kwargs['dropletId']
+        if 'floatingIpUrn' in kwargs:
+            floating_ip_urn = kwargs['floatingIpUrn']
+        if 'ipAddress' in kwargs:
+            ip_address = kwargs['ipAddress']
+
         if droplet_id is not None:
             _setter("droplet_id", droplet_id)
         if floating_ip_urn is not None:

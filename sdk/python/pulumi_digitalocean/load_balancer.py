@@ -18,7 +18,6 @@ __all__ = ['LoadBalancerArgs', 'LoadBalancer']
 class LoadBalancerArgs:
     def __init__(__self__, *,
                  forwarding_rules: pulumi.Input[Sequence[pulumi.Input['LoadBalancerForwardingRuleArgs']]],
-                 region: pulumi.Input[Union[str, 'Region']],
                  algorithm: Optional[pulumi.Input[Union[str, 'Algorithm']]] = None,
                  disable_lets_encrypt_dns_records: Optional[pulumi.Input[bool]] = None,
                  droplet_ids: Optional[pulumi.Input[Sequence[pulumi.Input[int]]]] = None,
@@ -31,15 +30,16 @@ class LoadBalancerArgs:
                  name: Optional[pulumi.Input[str]] = None,
                  project_id: Optional[pulumi.Input[str]] = None,
                  redirect_http_to_https: Optional[pulumi.Input[bool]] = None,
+                 region: Optional[pulumi.Input[Union[str, 'Region']]] = None,
                  size: Optional[pulumi.Input[str]] = None,
                  size_unit: Optional[pulumi.Input[int]] = None,
                  sticky_sessions: Optional[pulumi.Input['LoadBalancerStickySessionsArgs']] = None,
+                 type: Optional[pulumi.Input[str]] = None,
                  vpc_uuid: Optional[pulumi.Input[str]] = None):
         """
         The set of arguments for constructing a LoadBalancer resource.
         :param pulumi.Input[Sequence[pulumi.Input['LoadBalancerForwardingRuleArgs']]] forwarding_rules: A list of `forwarding_rule` to be assigned to the
                Load Balancer. The `forwarding_rule` block is documented below.
-        :param pulumi.Input[Union[str, 'Region']] region: The region to start in
         :param pulumi.Input[Union[str, 'Algorithm']] algorithm: The load balancing algorithm used to determine
                which backend Droplet will be selected by a client. It must be either `round_robin`
                or `least_connections`. The default value is `round_robin`.
@@ -59,16 +59,17 @@ class LoadBalancerArgs:
         :param pulumi.Input[bool] redirect_http_to_https: A boolean value indicating whether
                HTTP requests to the Load Balancer on port 80 will be redirected to HTTPS on port 443.
                Default value is `false`.
+        :param pulumi.Input[Union[str, 'Region']] region: The region to start in
         :param pulumi.Input[str] size: The size of the Load Balancer. It must be either `lb-small`, `lb-medium`, or `lb-large`. Defaults to `lb-small`. Only one of `size` or `size_unit` may be provided.
         :param pulumi.Input[int] size_unit: The size of the Load Balancer. It must be in the range (1, 100). Defaults to `1`. Only one of `size` or `size_unit` may be provided.
         :param pulumi.Input['LoadBalancerStickySessionsArgs'] sticky_sessions: A `sticky_sessions` block to be assigned to the
                Load Balancer. The `sticky_sessions` block is documented below. Only 1 sticky_sessions block is allowed.
+        :param pulumi.Input[str] type: An attribute indicating how and if requests from a client will be persistently served by the same backend Droplet. The possible values are `cookies` or `none`. If not specified, the default value is `none`.
         :param pulumi.Input[str] vpc_uuid: The ID of the VPC where the load balancer will be located.
         """
         LoadBalancerArgs._configure(
             lambda key, value: pulumi.set(__self__, key, value),
             forwarding_rules=forwarding_rules,
-            region=region,
             algorithm=algorithm,
             disable_lets_encrypt_dns_records=disable_lets_encrypt_dns_records,
             droplet_ids=droplet_ids,
@@ -81,16 +82,17 @@ class LoadBalancerArgs:
             name=name,
             project_id=project_id,
             redirect_http_to_https=redirect_http_to_https,
+            region=region,
             size=size,
             size_unit=size_unit,
             sticky_sessions=sticky_sessions,
+            type=type,
             vpc_uuid=vpc_uuid,
         )
     @staticmethod
     def _configure(
              _setter: Callable[[Any, Any], None],
              forwarding_rules: pulumi.Input[Sequence[pulumi.Input['LoadBalancerForwardingRuleArgs']]],
-             region: pulumi.Input[Union[str, 'Region']],
              algorithm: Optional[pulumi.Input[Union[str, 'Algorithm']]] = None,
              disable_lets_encrypt_dns_records: Optional[pulumi.Input[bool]] = None,
              droplet_ids: Optional[pulumi.Input[Sequence[pulumi.Input[int]]]] = None,
@@ -103,13 +105,40 @@ class LoadBalancerArgs:
              name: Optional[pulumi.Input[str]] = None,
              project_id: Optional[pulumi.Input[str]] = None,
              redirect_http_to_https: Optional[pulumi.Input[bool]] = None,
+             region: Optional[pulumi.Input[Union[str, 'Region']]] = None,
              size: Optional[pulumi.Input[str]] = None,
              size_unit: Optional[pulumi.Input[int]] = None,
              sticky_sessions: Optional[pulumi.Input['LoadBalancerStickySessionsArgs']] = None,
+             type: Optional[pulumi.Input[str]] = None,
              vpc_uuid: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'forwardingRules' in kwargs:
+            forwarding_rules = kwargs['forwardingRules']
+        if 'disableLetsEncryptDnsRecords' in kwargs:
+            disable_lets_encrypt_dns_records = kwargs['disableLetsEncryptDnsRecords']
+        if 'dropletIds' in kwargs:
+            droplet_ids = kwargs['dropletIds']
+        if 'dropletTag' in kwargs:
+            droplet_tag = kwargs['dropletTag']
+        if 'enableBackendKeepalive' in kwargs:
+            enable_backend_keepalive = kwargs['enableBackendKeepalive']
+        if 'enableProxyProtocol' in kwargs:
+            enable_proxy_protocol = kwargs['enableProxyProtocol']
+        if 'httpIdleTimeoutSeconds' in kwargs:
+            http_idle_timeout_seconds = kwargs['httpIdleTimeoutSeconds']
+        if 'projectId' in kwargs:
+            project_id = kwargs['projectId']
+        if 'redirectHttpToHttps' in kwargs:
+            redirect_http_to_https = kwargs['redirectHttpToHttps']
+        if 'sizeUnit' in kwargs:
+            size_unit = kwargs['sizeUnit']
+        if 'stickySessions' in kwargs:
+            sticky_sessions = kwargs['stickySessions']
+        if 'vpcUuid' in kwargs:
+            vpc_uuid = kwargs['vpcUuid']
+
         _setter("forwarding_rules", forwarding_rules)
-        _setter("region", region)
         if algorithm is not None:
             _setter("algorithm", algorithm)
         if disable_lets_encrypt_dns_records is not None:
@@ -134,12 +163,16 @@ class LoadBalancerArgs:
             _setter("project_id", project_id)
         if redirect_http_to_https is not None:
             _setter("redirect_http_to_https", redirect_http_to_https)
+        if region is not None:
+            _setter("region", region)
         if size is not None:
             _setter("size", size)
         if size_unit is not None:
             _setter("size_unit", size_unit)
         if sticky_sessions is not None:
             _setter("sticky_sessions", sticky_sessions)
+        if type is not None:
+            _setter("type", type)
         if vpc_uuid is not None:
             _setter("vpc_uuid", vpc_uuid)
 
@@ -155,18 +188,6 @@ class LoadBalancerArgs:
     @forwarding_rules.setter
     def forwarding_rules(self, value: pulumi.Input[Sequence[pulumi.Input['LoadBalancerForwardingRuleArgs']]]):
         pulumi.set(self, "forwarding_rules", value)
-
-    @property
-    @pulumi.getter
-    def region(self) -> pulumi.Input[Union[str, 'Region']]:
-        """
-        The region to start in
-        """
-        return pulumi.get(self, "region")
-
-    @region.setter
-    def region(self, value: pulumi.Input[Union[str, 'Region']]):
-        pulumi.set(self, "region", value)
 
     @property
     @pulumi.getter
@@ -321,6 +342,18 @@ class LoadBalancerArgs:
 
     @property
     @pulumi.getter
+    def region(self) -> Optional[pulumi.Input[Union[str, 'Region']]]:
+        """
+        The region to start in
+        """
+        return pulumi.get(self, "region")
+
+    @region.setter
+    def region(self, value: Optional[pulumi.Input[Union[str, 'Region']]]):
+        pulumi.set(self, "region", value)
+
+    @property
+    @pulumi.getter
     def size(self) -> Optional[pulumi.Input[str]]:
         """
         The size of the Load Balancer. It must be either `lb-small`, `lb-medium`, or `lb-large`. Defaults to `lb-small`. Only one of `size` or `size_unit` may be provided.
@@ -355,6 +388,18 @@ class LoadBalancerArgs:
     @sticky_sessions.setter
     def sticky_sessions(self, value: Optional[pulumi.Input['LoadBalancerStickySessionsArgs']]):
         pulumi.set(self, "sticky_sessions", value)
+
+    @property
+    @pulumi.getter
+    def type(self) -> Optional[pulumi.Input[str]]:
+        """
+        An attribute indicating how and if requests from a client will be persistently served by the same backend Droplet. The possible values are `cookies` or `none`. If not specified, the default value is `none`.
+        """
+        return pulumi.get(self, "type")
+
+    @type.setter
+    def type(self, value: Optional[pulumi.Input[str]]):
+        pulumi.set(self, "type", value)
 
     @property
     @pulumi.getter(name="vpcUuid")
@@ -392,6 +437,7 @@ class _LoadBalancerState:
                  size_unit: Optional[pulumi.Input[int]] = None,
                  status: Optional[pulumi.Input[str]] = None,
                  sticky_sessions: Optional[pulumi.Input['LoadBalancerStickySessionsArgs']] = None,
+                 type: Optional[pulumi.Input[str]] = None,
                  vpc_uuid: Optional[pulumi.Input[str]] = None):
         """
         Input properties used for looking up and filtering LoadBalancer resources.
@@ -423,6 +469,7 @@ class _LoadBalancerState:
         :param pulumi.Input[int] size_unit: The size of the Load Balancer. It must be in the range (1, 100). Defaults to `1`. Only one of `size` or `size_unit` may be provided.
         :param pulumi.Input['LoadBalancerStickySessionsArgs'] sticky_sessions: A `sticky_sessions` block to be assigned to the
                Load Balancer. The `sticky_sessions` block is documented below. Only 1 sticky_sessions block is allowed.
+        :param pulumi.Input[str] type: An attribute indicating how and if requests from a client will be persistently served by the same backend Droplet. The possible values are `cookies` or `none`. If not specified, the default value is `none`.
         :param pulumi.Input[str] vpc_uuid: The ID of the VPC where the load balancer will be located.
         """
         _LoadBalancerState._configure(
@@ -447,6 +494,7 @@ class _LoadBalancerState:
             size_unit=size_unit,
             status=status,
             sticky_sessions=sticky_sessions,
+            type=type,
             vpc_uuid=vpc_uuid,
         )
     @staticmethod
@@ -472,8 +520,37 @@ class _LoadBalancerState:
              size_unit: Optional[pulumi.Input[int]] = None,
              status: Optional[pulumi.Input[str]] = None,
              sticky_sessions: Optional[pulumi.Input['LoadBalancerStickySessionsArgs']] = None,
+             type: Optional[pulumi.Input[str]] = None,
              vpc_uuid: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'disableLetsEncryptDnsRecords' in kwargs:
+            disable_lets_encrypt_dns_records = kwargs['disableLetsEncryptDnsRecords']
+        if 'dropletIds' in kwargs:
+            droplet_ids = kwargs['dropletIds']
+        if 'dropletTag' in kwargs:
+            droplet_tag = kwargs['dropletTag']
+        if 'enableBackendKeepalive' in kwargs:
+            enable_backend_keepalive = kwargs['enableBackendKeepalive']
+        if 'enableProxyProtocol' in kwargs:
+            enable_proxy_protocol = kwargs['enableProxyProtocol']
+        if 'forwardingRules' in kwargs:
+            forwarding_rules = kwargs['forwardingRules']
+        if 'httpIdleTimeoutSeconds' in kwargs:
+            http_idle_timeout_seconds = kwargs['httpIdleTimeoutSeconds']
+        if 'loadBalancerUrn' in kwargs:
+            load_balancer_urn = kwargs['loadBalancerUrn']
+        if 'projectId' in kwargs:
+            project_id = kwargs['projectId']
+        if 'redirectHttpToHttps' in kwargs:
+            redirect_http_to_https = kwargs['redirectHttpToHttps']
+        if 'sizeUnit' in kwargs:
+            size_unit = kwargs['sizeUnit']
+        if 'stickySessions' in kwargs:
+            sticky_sessions = kwargs['stickySessions']
+        if 'vpcUuid' in kwargs:
+            vpc_uuid = kwargs['vpcUuid']
+
         if algorithm is not None:
             _setter("algorithm", algorithm)
         if disable_lets_encrypt_dns_records is not None:
@@ -514,6 +591,8 @@ class _LoadBalancerState:
             _setter("status", status)
         if sticky_sessions is not None:
             _setter("sticky_sessions", sticky_sessions)
+        if type is not None:
+            _setter("type", type)
         if vpc_uuid is not None:
             _setter("vpc_uuid", vpc_uuid)
 
@@ -764,6 +843,18 @@ class _LoadBalancerState:
         pulumi.set(self, "sticky_sessions", value)
 
     @property
+    @pulumi.getter
+    def type(self) -> Optional[pulumi.Input[str]]:
+        """
+        An attribute indicating how and if requests from a client will be persistently served by the same backend Droplet. The possible values are `cookies` or `none`. If not specified, the default value is `none`.
+        """
+        return pulumi.get(self, "type")
+
+    @type.setter
+    def type(self, value: Optional[pulumi.Input[str]]):
+        pulumi.set(self, "type", value)
+
+    @property
     @pulumi.getter(name="vpcUuid")
     def vpc_uuid(self) -> Optional[pulumi.Input[str]]:
         """
@@ -798,6 +889,7 @@ class LoadBalancer(pulumi.CustomResource):
                  size: Optional[pulumi.Input[str]] = None,
                  size_unit: Optional[pulumi.Input[int]] = None,
                  sticky_sessions: Optional[pulumi.Input[pulumi.InputType['LoadBalancerStickySessionsArgs']]] = None,
+                 type: Optional[pulumi.Input[str]] = None,
                  vpc_uuid: Optional[pulumi.Input[str]] = None,
                  __props__=None):
         """
@@ -898,6 +990,7 @@ class LoadBalancer(pulumi.CustomResource):
         :param pulumi.Input[int] size_unit: The size of the Load Balancer. It must be in the range (1, 100). Defaults to `1`. Only one of `size` or `size_unit` may be provided.
         :param pulumi.Input[pulumi.InputType['LoadBalancerStickySessionsArgs']] sticky_sessions: A `sticky_sessions` block to be assigned to the
                Load Balancer. The `sticky_sessions` block is documented below. Only 1 sticky_sessions block is allowed.
+        :param pulumi.Input[str] type: An attribute indicating how and if requests from a client will be persistently served by the same backend Droplet. The possible values are `cookies` or `none`. If not specified, the default value is `none`.
         :param pulumi.Input[str] vpc_uuid: The ID of the VPC where the load balancer will be located.
         """
         ...
@@ -1012,6 +1105,7 @@ class LoadBalancer(pulumi.CustomResource):
                  size: Optional[pulumi.Input[str]] = None,
                  size_unit: Optional[pulumi.Input[int]] = None,
                  sticky_sessions: Optional[pulumi.Input[pulumi.InputType['LoadBalancerStickySessionsArgs']]] = None,
+                 type: Optional[pulumi.Input[str]] = None,
                  vpc_uuid: Optional[pulumi.Input[str]] = None,
                  __props__=None):
         opts = pulumi.ResourceOptions.merge(_utilities.get_resource_opts_defaults(), opts)
@@ -1047,8 +1141,6 @@ class LoadBalancer(pulumi.CustomResource):
             __props__.__dict__["name"] = name
             __props__.__dict__["project_id"] = project_id
             __props__.__dict__["redirect_http_to_https"] = redirect_http_to_https
-            if region is None and not opts.urn:
-                raise TypeError("Missing required property 'region'")
             __props__.__dict__["region"] = region
             __props__.__dict__["size"] = size
             __props__.__dict__["size_unit"] = size_unit
@@ -1058,6 +1150,7 @@ class LoadBalancer(pulumi.CustomResource):
                     sticky_sessions[key] = value
                 LoadBalancerStickySessionsArgs._configure(_setter, **sticky_sessions)
             __props__.__dict__["sticky_sessions"] = sticky_sessions
+            __props__.__dict__["type"] = type
             __props__.__dict__["vpc_uuid"] = vpc_uuid
             __props__.__dict__["ip"] = None
             __props__.__dict__["load_balancer_urn"] = None
@@ -1092,6 +1185,7 @@ class LoadBalancer(pulumi.CustomResource):
             size_unit: Optional[pulumi.Input[int]] = None,
             status: Optional[pulumi.Input[str]] = None,
             sticky_sessions: Optional[pulumi.Input[pulumi.InputType['LoadBalancerStickySessionsArgs']]] = None,
+            type: Optional[pulumi.Input[str]] = None,
             vpc_uuid: Optional[pulumi.Input[str]] = None) -> 'LoadBalancer':
         """
         Get an existing LoadBalancer resource's state with the given name, id, and optional extra
@@ -1128,6 +1222,7 @@ class LoadBalancer(pulumi.CustomResource):
         :param pulumi.Input[int] size_unit: The size of the Load Balancer. It must be in the range (1, 100). Defaults to `1`. Only one of `size` or `size_unit` may be provided.
         :param pulumi.Input[pulumi.InputType['LoadBalancerStickySessionsArgs']] sticky_sessions: A `sticky_sessions` block to be assigned to the
                Load Balancer. The `sticky_sessions` block is documented below. Only 1 sticky_sessions block is allowed.
+        :param pulumi.Input[str] type: An attribute indicating how and if requests from a client will be persistently served by the same backend Droplet. The possible values are `cookies` or `none`. If not specified, the default value is `none`.
         :param pulumi.Input[str] vpc_uuid: The ID of the VPC where the load balancer will be located.
         """
         opts = pulumi.ResourceOptions.merge(opts, pulumi.ResourceOptions(id=id))
@@ -1154,6 +1249,7 @@ class LoadBalancer(pulumi.CustomResource):
         __props__.__dict__["size_unit"] = size_unit
         __props__.__dict__["status"] = status
         __props__.__dict__["sticky_sessions"] = sticky_sessions
+        __props__.__dict__["type"] = type
         __props__.__dict__["vpc_uuid"] = vpc_uuid
         return LoadBalancer(resource_name, opts=opts, __props__=__props__)
 
@@ -1287,7 +1383,7 @@ class LoadBalancer(pulumi.CustomResource):
 
     @property
     @pulumi.getter
-    def region(self) -> pulumi.Output[str]:
+    def region(self) -> pulumi.Output[Optional[str]]:
         """
         The region to start in
         """
@@ -1322,6 +1418,14 @@ class LoadBalancer(pulumi.CustomResource):
         Load Balancer. The `sticky_sessions` block is documented below. Only 1 sticky_sessions block is allowed.
         """
         return pulumi.get(self, "sticky_sessions")
+
+    @property
+    @pulumi.getter
+    def type(self) -> pulumi.Output[Optional[str]]:
+        """
+        An attribute indicating how and if requests from a client will be persistently served by the same backend Droplet. The possible values are `cookies` or `none`. If not specified, the default value is `none`.
+        """
+        return pulumi.get(self, "type")
 
     @property
     @pulumi.getter(name="vpcUuid")

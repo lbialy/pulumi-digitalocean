@@ -43,7 +43,15 @@ class CdnArgs:
              certificate_name: Optional[pulumi.Input[str]] = None,
              custom_domain: Optional[pulumi.Input[str]] = None,
              ttl: Optional[pulumi.Input[int]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'certificateId' in kwargs:
+            certificate_id = kwargs['certificateId']
+        if 'certificateName' in kwargs:
+            certificate_name = kwargs['certificateName']
+        if 'customDomain' in kwargs:
+            custom_domain = kwargs['customDomain']
+
         _setter("origin", origin)
         if certificate_id is not None:
             warnings.warn("""Certificate IDs may change, for example when a Let's Encrypt certificate is auto-renewed. Please specify 'certificate_name' instead.""", DeprecationWarning)
@@ -161,7 +169,17 @@ class _CdnState:
              endpoint: Optional[pulumi.Input[str]] = None,
              origin: Optional[pulumi.Input[str]] = None,
              ttl: Optional[pulumi.Input[int]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'certificateId' in kwargs:
+            certificate_id = kwargs['certificateId']
+        if 'certificateName' in kwargs:
+            certificate_name = kwargs['certificateName']
+        if 'createdAt' in kwargs:
+            created_at = kwargs['createdAt']
+        if 'customDomain' in kwargs:
+            custom_domain = kwargs['customDomain']
+
         if certificate_id is not None:
             warnings.warn("""Certificate IDs may change, for example when a Let's Encrypt certificate is auto-renewed. Please specify 'certificate_name' instead.""", DeprecationWarning)
             pulumi.log.warn("""certificate_id is deprecated: Certificate IDs may change, for example when a Let's Encrypt certificate is auto-renewed. Please specify 'certificate_name' instead.""")

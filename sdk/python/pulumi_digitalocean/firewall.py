@@ -48,7 +48,15 @@ class FirewallArgs:
              name: Optional[pulumi.Input[str]] = None,
              outbound_rules: Optional[pulumi.Input[Sequence[pulumi.Input['FirewallOutboundRuleArgs']]]] = None,
              tags: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'dropletIds' in kwargs:
+            droplet_ids = kwargs['dropletIds']
+        if 'inboundRules' in kwargs:
+            inbound_rules = kwargs['inboundRules']
+        if 'outboundRules' in kwargs:
+            outbound_rules = kwargs['outboundRules']
+
         if droplet_ids is not None:
             _setter("droplet_ids", droplet_ids)
         if inbound_rules is not None:
@@ -176,7 +184,19 @@ class _FirewallState:
              pending_changes: Optional[pulumi.Input[Sequence[pulumi.Input['FirewallPendingChangeArgs']]]] = None,
              status: Optional[pulumi.Input[str]] = None,
              tags: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'createdAt' in kwargs:
+            created_at = kwargs['createdAt']
+        if 'dropletIds' in kwargs:
+            droplet_ids = kwargs['dropletIds']
+        if 'inboundRules' in kwargs:
+            inbound_rules = kwargs['inboundRules']
+        if 'outboundRules' in kwargs:
+            outbound_rules = kwargs['outboundRules']
+        if 'pendingChanges' in kwargs:
+            pending_changes = kwargs['pendingChanges']
+
         if created_at is not None:
             _setter("created_at", created_at)
         if droplet_ids is not None:

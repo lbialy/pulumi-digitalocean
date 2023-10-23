@@ -39,7 +39,11 @@ class VpcArgs:
              description: Optional[pulumi.Input[str]] = None,
              ip_range: Optional[pulumi.Input[str]] = None,
              name: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'ipRange' in kwargs:
+            ip_range = kwargs['ipRange']
+
         _setter("region", region)
         if description is not None:
             _setter("description", description)
@@ -137,7 +141,15 @@ class _VpcState:
              name: Optional[pulumi.Input[str]] = None,
              region: Optional[pulumi.Input[str]] = None,
              vpc_urn: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'createdAt' in kwargs:
+            created_at = kwargs['createdAt']
+        if 'ipRange' in kwargs:
+            ip_range = kwargs['ipRange']
+        if 'vpcUrn' in kwargs:
+            vpc_urn = kwargs['vpcUrn']
+
         if created_at is not None:
             _setter("created_at", created_at)
         if default is not None:

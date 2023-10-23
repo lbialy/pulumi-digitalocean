@@ -28,12 +28,13 @@ class DatabaseClusterArgs:
                  private_network_uuid: Optional[pulumi.Input[str]] = None,
                  project_id: Optional[pulumi.Input[str]] = None,
                  sql_mode: Optional[pulumi.Input[str]] = None,
+                 storage_size_mib: Optional[pulumi.Input[str]] = None,
                  tags: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
                  version: Optional[pulumi.Input[str]] = None):
         """
         The set of arguments for constructing a DatabaseCluster resource.
-        :param pulumi.Input[str] engine: Database engine used by the cluster (ex. `pg` for PostreSQL, `mysql` for MySQL, `redis` for Redis, or `mongodb` for MongoDB).
-        :param pulumi.Input[int] node_count: Number of nodes that will be included in the cluster.
+        :param pulumi.Input[str] engine: Database engine used by the cluster (ex. `pg` for PostreSQL, `mysql` for MySQL, `redis` for Redis, `mongodb` for MongoDB, or `kafka` for Kafka).
+        :param pulumi.Input[int] node_count: Number of nodes that will be included in the cluster. For `kafka` clusters, this must be 3.
         :param pulumi.Input[Union[str, 'Region']] region: DigitalOcean region where the cluster will reside.
         :param pulumi.Input[Union[str, 'DatabaseSlug']] size: Database Droplet size associated with the cluster (ex. `db-s-1vcpu-1gb`). See here for a [list of valid size slugs](https://docs.digitalocean.com/reference/api/api-reference/#tag/Databases).
         :param pulumi.Input['DatabaseClusterBackupRestoreArgs'] backup_restore: Create a new database cluster based on a backup of an existing cluster.
@@ -43,6 +44,7 @@ class DatabaseClusterArgs:
         :param pulumi.Input[str] private_network_uuid: The ID of the VPC where the database cluster will be located.
         :param pulumi.Input[str] project_id: The ID of the project that the database cluster is assigned to. If excluded when creating a new database cluster, it will be assigned to your default project.
         :param pulumi.Input[str] sql_mode: A comma separated string specifying the  SQL modes for a MySQL cluster.
+        :param pulumi.Input[str] storage_size_mib: Defines the disk size, in MiB, allocated to the cluster. This can be adjusted on MySQL and PostreSQL clusters based on predefined ranges for each slug/droplet size.
         :param pulumi.Input[Sequence[pulumi.Input[str]]] tags: A list of tag names to be applied to the database cluster.
         :param pulumi.Input[str] version: Engine version used by the cluster (ex. `14` for PostgreSQL 14).
                When this value is changed, a call to the [Upgrade major Version for a Database](https://docs.digitalocean.com/reference/api/api-reference/#operation/databases_update_major_version) API operation is made with the new version.
@@ -60,6 +62,7 @@ class DatabaseClusterArgs:
             private_network_uuid=private_network_uuid,
             project_id=project_id,
             sql_mode=sql_mode,
+            storage_size_mib=storage_size_mib,
             tags=tags,
             version=version,
         )
@@ -77,9 +80,28 @@ class DatabaseClusterArgs:
              private_network_uuid: Optional[pulumi.Input[str]] = None,
              project_id: Optional[pulumi.Input[str]] = None,
              sql_mode: Optional[pulumi.Input[str]] = None,
+             storage_size_mib: Optional[pulumi.Input[str]] = None,
              tags: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
              version: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'nodeCount' in kwargs:
+            node_count = kwargs['nodeCount']
+        if 'backupRestore' in kwargs:
+            backup_restore = kwargs['backupRestore']
+        if 'evictionPolicy' in kwargs:
+            eviction_policy = kwargs['evictionPolicy']
+        if 'maintenanceWindows' in kwargs:
+            maintenance_windows = kwargs['maintenanceWindows']
+        if 'privateNetworkUuid' in kwargs:
+            private_network_uuid = kwargs['privateNetworkUuid']
+        if 'projectId' in kwargs:
+            project_id = kwargs['projectId']
+        if 'sqlMode' in kwargs:
+            sql_mode = kwargs['sqlMode']
+        if 'storageSizeMib' in kwargs:
+            storage_size_mib = kwargs['storageSizeMib']
+
         _setter("engine", engine)
         _setter("node_count", node_count)
         _setter("region", region)
@@ -98,6 +120,8 @@ class DatabaseClusterArgs:
             _setter("project_id", project_id)
         if sql_mode is not None:
             _setter("sql_mode", sql_mode)
+        if storage_size_mib is not None:
+            _setter("storage_size_mib", storage_size_mib)
         if tags is not None:
             _setter("tags", tags)
         if version is not None:
@@ -107,7 +131,7 @@ class DatabaseClusterArgs:
     @pulumi.getter
     def engine(self) -> pulumi.Input[str]:
         """
-        Database engine used by the cluster (ex. `pg` for PostreSQL, `mysql` for MySQL, `redis` for Redis, or `mongodb` for MongoDB).
+        Database engine used by the cluster (ex. `pg` for PostreSQL, `mysql` for MySQL, `redis` for Redis, `mongodb` for MongoDB, or `kafka` for Kafka).
         """
         return pulumi.get(self, "engine")
 
@@ -119,7 +143,7 @@ class DatabaseClusterArgs:
     @pulumi.getter(name="nodeCount")
     def node_count(self) -> pulumi.Input[int]:
         """
-        Number of nodes that will be included in the cluster.
+        Number of nodes that will be included in the cluster. For `kafka` clusters, this must be 3.
         """
         return pulumi.get(self, "node_count")
 
@@ -236,6 +260,18 @@ class DatabaseClusterArgs:
         pulumi.set(self, "sql_mode", value)
 
     @property
+    @pulumi.getter(name="storageSizeMib")
+    def storage_size_mib(self) -> Optional[pulumi.Input[str]]:
+        """
+        Defines the disk size, in MiB, allocated to the cluster. This can be adjusted on MySQL and PostreSQL clusters based on predefined ranges for each slug/droplet size.
+        """
+        return pulumi.get(self, "storage_size_mib")
+
+    @storage_size_mib.setter
+    def storage_size_mib(self, value: Optional[pulumi.Input[str]]):
+        pulumi.set(self, "storage_size_mib", value)
+
+    @property
     @pulumi.getter
     def tags(self) -> Optional[pulumi.Input[Sequence[pulumi.Input[str]]]]:
         """
@@ -282,6 +318,7 @@ class _DatabaseClusterState:
                  region: Optional[pulumi.Input[Union[str, 'Region']]] = None,
                  size: Optional[pulumi.Input[Union[str, 'DatabaseSlug']]] = None,
                  sql_mode: Optional[pulumi.Input[str]] = None,
+                 storage_size_mib: Optional[pulumi.Input[str]] = None,
                  tags: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
                  uri: Optional[pulumi.Input[str]] = None,
                  user: Optional[pulumi.Input[str]] = None,
@@ -291,12 +328,12 @@ class _DatabaseClusterState:
         :param pulumi.Input['DatabaseClusterBackupRestoreArgs'] backup_restore: Create a new database cluster based on a backup of an existing cluster.
         :param pulumi.Input[str] cluster_urn: The uniform resource name of the database cluster.
         :param pulumi.Input[str] database: Name of the cluster's default database.
-        :param pulumi.Input[str] engine: Database engine used by the cluster (ex. `pg` for PostreSQL, `mysql` for MySQL, `redis` for Redis, or `mongodb` for MongoDB).
+        :param pulumi.Input[str] engine: Database engine used by the cluster (ex. `pg` for PostreSQL, `mysql` for MySQL, `redis` for Redis, `mongodb` for MongoDB, or `kafka` for Kafka).
         :param pulumi.Input[str] eviction_policy: A string specifying the eviction policy for a Redis cluster. Valid values are: `noeviction`, `allkeys_lru`, `allkeys_random`, `volatile_lru`, `volatile_random`, or `volatile_ttl`.
         :param pulumi.Input[str] host: Database cluster's hostname.
         :param pulumi.Input[Sequence[pulumi.Input['DatabaseClusterMaintenanceWindowArgs']]] maintenance_windows: Defines when the automatic maintenance should be performed for the database cluster.
         :param pulumi.Input[str] name: The name of the database cluster.
-        :param pulumi.Input[int] node_count: Number of nodes that will be included in the cluster.
+        :param pulumi.Input[int] node_count: Number of nodes that will be included in the cluster. For `kafka` clusters, this must be 3.
         :param pulumi.Input[str] password: Password for the cluster's default user.
         :param pulumi.Input[int] port: Network port that the database cluster is listening on.
         :param pulumi.Input[str] private_host: Same as `host`, but only accessible from resources within the account and in the same region.
@@ -306,6 +343,7 @@ class _DatabaseClusterState:
         :param pulumi.Input[Union[str, 'Region']] region: DigitalOcean region where the cluster will reside.
         :param pulumi.Input[Union[str, 'DatabaseSlug']] size: Database Droplet size associated with the cluster (ex. `db-s-1vcpu-1gb`). See here for a [list of valid size slugs](https://docs.digitalocean.com/reference/api/api-reference/#tag/Databases).
         :param pulumi.Input[str] sql_mode: A comma separated string specifying the  SQL modes for a MySQL cluster.
+        :param pulumi.Input[str] storage_size_mib: Defines the disk size, in MiB, allocated to the cluster. This can be adjusted on MySQL and PostreSQL clusters based on predefined ranges for each slug/droplet size.
         :param pulumi.Input[Sequence[pulumi.Input[str]]] tags: A list of tag names to be applied to the database cluster.
         :param pulumi.Input[str] uri: The full URI for connecting to the database cluster.
         :param pulumi.Input[str] user: Username for the cluster's default user.
@@ -332,6 +370,7 @@ class _DatabaseClusterState:
             region=region,
             size=size,
             sql_mode=sql_mode,
+            storage_size_mib=storage_size_mib,
             tags=tags,
             uri=uri,
             user=user,
@@ -358,11 +397,36 @@ class _DatabaseClusterState:
              region: Optional[pulumi.Input[Union[str, 'Region']]] = None,
              size: Optional[pulumi.Input[Union[str, 'DatabaseSlug']]] = None,
              sql_mode: Optional[pulumi.Input[str]] = None,
+             storage_size_mib: Optional[pulumi.Input[str]] = None,
              tags: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
              uri: Optional[pulumi.Input[str]] = None,
              user: Optional[pulumi.Input[str]] = None,
              version: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'backupRestore' in kwargs:
+            backup_restore = kwargs['backupRestore']
+        if 'clusterUrn' in kwargs:
+            cluster_urn = kwargs['clusterUrn']
+        if 'evictionPolicy' in kwargs:
+            eviction_policy = kwargs['evictionPolicy']
+        if 'maintenanceWindows' in kwargs:
+            maintenance_windows = kwargs['maintenanceWindows']
+        if 'nodeCount' in kwargs:
+            node_count = kwargs['nodeCount']
+        if 'privateHost' in kwargs:
+            private_host = kwargs['privateHost']
+        if 'privateNetworkUuid' in kwargs:
+            private_network_uuid = kwargs['privateNetworkUuid']
+        if 'privateUri' in kwargs:
+            private_uri = kwargs['privateUri']
+        if 'projectId' in kwargs:
+            project_id = kwargs['projectId']
+        if 'sqlMode' in kwargs:
+            sql_mode = kwargs['sqlMode']
+        if 'storageSizeMib' in kwargs:
+            storage_size_mib = kwargs['storageSizeMib']
+
         if backup_restore is not None:
             _setter("backup_restore", backup_restore)
         if cluster_urn is not None:
@@ -399,6 +463,8 @@ class _DatabaseClusterState:
             _setter("size", size)
         if sql_mode is not None:
             _setter("sql_mode", sql_mode)
+        if storage_size_mib is not None:
+            _setter("storage_size_mib", storage_size_mib)
         if tags is not None:
             _setter("tags", tags)
         if uri is not None:
@@ -448,7 +514,7 @@ class _DatabaseClusterState:
     @pulumi.getter
     def engine(self) -> Optional[pulumi.Input[str]]:
         """
-        Database engine used by the cluster (ex. `pg` for PostreSQL, `mysql` for MySQL, `redis` for Redis, or `mongodb` for MongoDB).
+        Database engine used by the cluster (ex. `pg` for PostreSQL, `mysql` for MySQL, `redis` for Redis, `mongodb` for MongoDB, or `kafka` for Kafka).
         """
         return pulumi.get(self, "engine")
 
@@ -508,7 +574,7 @@ class _DatabaseClusterState:
     @pulumi.getter(name="nodeCount")
     def node_count(self) -> Optional[pulumi.Input[int]]:
         """
-        Number of nodes that will be included in the cluster.
+        Number of nodes that will be included in the cluster. For `kafka` clusters, this must be 3.
         """
         return pulumi.get(self, "node_count")
 
@@ -625,6 +691,18 @@ class _DatabaseClusterState:
         pulumi.set(self, "sql_mode", value)
 
     @property
+    @pulumi.getter(name="storageSizeMib")
+    def storage_size_mib(self) -> Optional[pulumi.Input[str]]:
+        """
+        Defines the disk size, in MiB, allocated to the cluster. This can be adjusted on MySQL and PostreSQL clusters based on predefined ranges for each slug/droplet size.
+        """
+        return pulumi.get(self, "storage_size_mib")
+
+    @storage_size_mib.setter
+    def storage_size_mib(self, value: Optional[pulumi.Input[str]]):
+        pulumi.set(self, "storage_size_mib", value)
+
+    @property
     @pulumi.getter
     def tags(self) -> Optional[pulumi.Input[Sequence[pulumi.Input[str]]]]:
         """
@@ -690,6 +768,7 @@ class DatabaseCluster(pulumi.CustomResource):
                  region: Optional[pulumi.Input[Union[str, 'Region']]] = None,
                  size: Optional[pulumi.Input[Union[str, 'DatabaseSlug']]] = None,
                  sql_mode: Optional[pulumi.Input[str]] = None,
+                 storage_size_mib: Optional[pulumi.Input[str]] = None,
                  tags: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
                  version: Optional[pulumi.Input[str]] = None,
                  __props__=None):
@@ -731,7 +810,19 @@ class DatabaseCluster(pulumi.CustomResource):
             node_count=1,
             region="nyc1",
             size="db-s-1vcpu-1gb",
-            version="6")
+            version="7")
+        ```
+        ### Create a new Kafka database cluster
+        ```python
+        import pulumi
+        import pulumi_digitalocean as digitalocean
+
+        kafka_example = digitalocean.DatabaseCluster("kafka-example",
+            engine="kafka",
+            node_count=3,
+            region="nyc1",
+            size="db-s-1vcpu-2gb",
+            version="3.5")
         ```
         ### Create a new MongoDB database cluster
         ```python
@@ -782,16 +873,17 @@ class DatabaseCluster(pulumi.CustomResource):
         :param str resource_name: The name of the resource.
         :param pulumi.ResourceOptions opts: Options for the resource.
         :param pulumi.Input[pulumi.InputType['DatabaseClusterBackupRestoreArgs']] backup_restore: Create a new database cluster based on a backup of an existing cluster.
-        :param pulumi.Input[str] engine: Database engine used by the cluster (ex. `pg` for PostreSQL, `mysql` for MySQL, `redis` for Redis, or `mongodb` for MongoDB).
+        :param pulumi.Input[str] engine: Database engine used by the cluster (ex. `pg` for PostreSQL, `mysql` for MySQL, `redis` for Redis, `mongodb` for MongoDB, or `kafka` for Kafka).
         :param pulumi.Input[str] eviction_policy: A string specifying the eviction policy for a Redis cluster. Valid values are: `noeviction`, `allkeys_lru`, `allkeys_random`, `volatile_lru`, `volatile_random`, or `volatile_ttl`.
         :param pulumi.Input[Sequence[pulumi.Input[pulumi.InputType['DatabaseClusterMaintenanceWindowArgs']]]] maintenance_windows: Defines when the automatic maintenance should be performed for the database cluster.
         :param pulumi.Input[str] name: The name of the database cluster.
-        :param pulumi.Input[int] node_count: Number of nodes that will be included in the cluster.
+        :param pulumi.Input[int] node_count: Number of nodes that will be included in the cluster. For `kafka` clusters, this must be 3.
         :param pulumi.Input[str] private_network_uuid: The ID of the VPC where the database cluster will be located.
         :param pulumi.Input[str] project_id: The ID of the project that the database cluster is assigned to. If excluded when creating a new database cluster, it will be assigned to your default project.
         :param pulumi.Input[Union[str, 'Region']] region: DigitalOcean region where the cluster will reside.
         :param pulumi.Input[Union[str, 'DatabaseSlug']] size: Database Droplet size associated with the cluster (ex. `db-s-1vcpu-1gb`). See here for a [list of valid size slugs](https://docs.digitalocean.com/reference/api/api-reference/#tag/Databases).
         :param pulumi.Input[str] sql_mode: A comma separated string specifying the  SQL modes for a MySQL cluster.
+        :param pulumi.Input[str] storage_size_mib: Defines the disk size, in MiB, allocated to the cluster. This can be adjusted on MySQL and PostreSQL clusters based on predefined ranges for each slug/droplet size.
         :param pulumi.Input[Sequence[pulumi.Input[str]]] tags: A list of tag names to be applied to the database cluster.
         :param pulumi.Input[str] version: Engine version used by the cluster (ex. `14` for PostgreSQL 14).
                When this value is changed, a call to the [Upgrade major Version for a Database](https://docs.digitalocean.com/reference/api/api-reference/#operation/databases_update_major_version) API operation is made with the new version.
@@ -840,7 +932,19 @@ class DatabaseCluster(pulumi.CustomResource):
             node_count=1,
             region="nyc1",
             size="db-s-1vcpu-1gb",
-            version="6")
+            version="7")
+        ```
+        ### Create a new Kafka database cluster
+        ```python
+        import pulumi
+        import pulumi_digitalocean as digitalocean
+
+        kafka_example = digitalocean.DatabaseCluster("kafka-example",
+            engine="kafka",
+            node_count=3,
+            region="nyc1",
+            size="db-s-1vcpu-2gb",
+            version="3.5")
         ```
         ### Create a new MongoDB database cluster
         ```python
@@ -918,6 +1022,7 @@ class DatabaseCluster(pulumi.CustomResource):
                  region: Optional[pulumi.Input[Union[str, 'Region']]] = None,
                  size: Optional[pulumi.Input[Union[str, 'DatabaseSlug']]] = None,
                  sql_mode: Optional[pulumi.Input[str]] = None,
+                 storage_size_mib: Optional[pulumi.Input[str]] = None,
                  tags: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
                  version: Optional[pulumi.Input[str]] = None,
                  __props__=None):
@@ -953,6 +1058,7 @@ class DatabaseCluster(pulumi.CustomResource):
                 raise TypeError("Missing required property 'size'")
             __props__.__dict__["size"] = size
             __props__.__dict__["sql_mode"] = sql_mode
+            __props__.__dict__["storage_size_mib"] = storage_size_mib
             __props__.__dict__["tags"] = tags
             __props__.__dict__["version"] = version
             __props__.__dict__["cluster_urn"] = None
@@ -994,6 +1100,7 @@ class DatabaseCluster(pulumi.CustomResource):
             region: Optional[pulumi.Input[Union[str, 'Region']]] = None,
             size: Optional[pulumi.Input[Union[str, 'DatabaseSlug']]] = None,
             sql_mode: Optional[pulumi.Input[str]] = None,
+            storage_size_mib: Optional[pulumi.Input[str]] = None,
             tags: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
             uri: Optional[pulumi.Input[str]] = None,
             user: Optional[pulumi.Input[str]] = None,
@@ -1008,12 +1115,12 @@ class DatabaseCluster(pulumi.CustomResource):
         :param pulumi.Input[pulumi.InputType['DatabaseClusterBackupRestoreArgs']] backup_restore: Create a new database cluster based on a backup of an existing cluster.
         :param pulumi.Input[str] cluster_urn: The uniform resource name of the database cluster.
         :param pulumi.Input[str] database: Name of the cluster's default database.
-        :param pulumi.Input[str] engine: Database engine used by the cluster (ex. `pg` for PostreSQL, `mysql` for MySQL, `redis` for Redis, or `mongodb` for MongoDB).
+        :param pulumi.Input[str] engine: Database engine used by the cluster (ex. `pg` for PostreSQL, `mysql` for MySQL, `redis` for Redis, `mongodb` for MongoDB, or `kafka` for Kafka).
         :param pulumi.Input[str] eviction_policy: A string specifying the eviction policy for a Redis cluster. Valid values are: `noeviction`, `allkeys_lru`, `allkeys_random`, `volatile_lru`, `volatile_random`, or `volatile_ttl`.
         :param pulumi.Input[str] host: Database cluster's hostname.
         :param pulumi.Input[Sequence[pulumi.Input[pulumi.InputType['DatabaseClusterMaintenanceWindowArgs']]]] maintenance_windows: Defines when the automatic maintenance should be performed for the database cluster.
         :param pulumi.Input[str] name: The name of the database cluster.
-        :param pulumi.Input[int] node_count: Number of nodes that will be included in the cluster.
+        :param pulumi.Input[int] node_count: Number of nodes that will be included in the cluster. For `kafka` clusters, this must be 3.
         :param pulumi.Input[str] password: Password for the cluster's default user.
         :param pulumi.Input[int] port: Network port that the database cluster is listening on.
         :param pulumi.Input[str] private_host: Same as `host`, but only accessible from resources within the account and in the same region.
@@ -1023,6 +1130,7 @@ class DatabaseCluster(pulumi.CustomResource):
         :param pulumi.Input[Union[str, 'Region']] region: DigitalOcean region where the cluster will reside.
         :param pulumi.Input[Union[str, 'DatabaseSlug']] size: Database Droplet size associated with the cluster (ex. `db-s-1vcpu-1gb`). See here for a [list of valid size slugs](https://docs.digitalocean.com/reference/api/api-reference/#tag/Databases).
         :param pulumi.Input[str] sql_mode: A comma separated string specifying the  SQL modes for a MySQL cluster.
+        :param pulumi.Input[str] storage_size_mib: Defines the disk size, in MiB, allocated to the cluster. This can be adjusted on MySQL and PostreSQL clusters based on predefined ranges for each slug/droplet size.
         :param pulumi.Input[Sequence[pulumi.Input[str]]] tags: A list of tag names to be applied to the database cluster.
         :param pulumi.Input[str] uri: The full URI for connecting to the database cluster.
         :param pulumi.Input[str] user: Username for the cluster's default user.
@@ -1051,6 +1159,7 @@ class DatabaseCluster(pulumi.CustomResource):
         __props__.__dict__["region"] = region
         __props__.__dict__["size"] = size
         __props__.__dict__["sql_mode"] = sql_mode
+        __props__.__dict__["storage_size_mib"] = storage_size_mib
         __props__.__dict__["tags"] = tags
         __props__.__dict__["uri"] = uri
         __props__.__dict__["user"] = user
@@ -1085,7 +1194,7 @@ class DatabaseCluster(pulumi.CustomResource):
     @pulumi.getter
     def engine(self) -> pulumi.Output[str]:
         """
-        Database engine used by the cluster (ex. `pg` for PostreSQL, `mysql` for MySQL, `redis` for Redis, or `mongodb` for MongoDB).
+        Database engine used by the cluster (ex. `pg` for PostreSQL, `mysql` for MySQL, `redis` for Redis, `mongodb` for MongoDB, or `kafka` for Kafka).
         """
         return pulumi.get(self, "engine")
 
@@ -1125,7 +1234,7 @@ class DatabaseCluster(pulumi.CustomResource):
     @pulumi.getter(name="nodeCount")
     def node_count(self) -> pulumi.Output[int]:
         """
-        Number of nodes that will be included in the cluster.
+        Number of nodes that will be included in the cluster. For `kafka` clusters, this must be 3.
         """
         return pulumi.get(self, "node_count")
 
@@ -1200,6 +1309,14 @@ class DatabaseCluster(pulumi.CustomResource):
         A comma separated string specifying the  SQL modes for a MySQL cluster.
         """
         return pulumi.get(self, "sql_mode")
+
+    @property
+    @pulumi.getter(name="storageSizeMib")
+    def storage_size_mib(self) -> pulumi.Output[str]:
+        """
+        Defines the disk size, in MiB, allocated to the cluster. This can be adjusted on MySQL and PostreSQL clusters based on predefined ranges for each slug/droplet size.
+        """
+        return pulumi.get(self, "storage_size_mib")
 
     @property
     @pulumi.getter

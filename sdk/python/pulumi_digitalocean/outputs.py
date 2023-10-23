@@ -30,6 +30,14 @@ __all__ = [
     'AppSpecFunctionLogDestinationLogtail',
     'AppSpecFunctionLogDestinationPapertrail',
     'AppSpecFunctionRoute',
+    'AppSpecIngress',
+    'AppSpecIngressRule',
+    'AppSpecIngressRuleComponent',
+    'AppSpecIngressRuleCors',
+    'AppSpecIngressRuleCorsAllowOrigins',
+    'AppSpecIngressRuleMatch',
+    'AppSpecIngressRuleMatchPath',
+    'AppSpecIngressRuleRedirect',
     'AppSpecJob',
     'AppSpecJobAlert',
     'AppSpecJobEnv',
@@ -81,6 +89,7 @@ __all__ = [
     'DatabaseClusterBackupRestore',
     'DatabaseClusterMaintenanceWindow',
     'DatabaseFirewallRule',
+    'DatabaseKafkaTopicConfig',
     'FirewallInboundRule',
     'FirewallOutboundRule',
     'FirewallPendingChange',
@@ -123,6 +132,14 @@ __all__ = [
     'GetAppSpecFunctionLogDestinationLogtailResult',
     'GetAppSpecFunctionLogDestinationPapertrailResult',
     'GetAppSpecFunctionRouteResult',
+    'GetAppSpecIngressResult',
+    'GetAppSpecIngressRuleResult',
+    'GetAppSpecIngressRuleComponentResult',
+    'GetAppSpecIngressRuleCorsResult',
+    'GetAppSpecIngressRuleCorsAllowOriginsResult',
+    'GetAppSpecIngressRuleMatchResult',
+    'GetAppSpecIngressRuleMatchPathResult',
+    'GetAppSpecIngressRuleRedirectResult',
     'GetAppSpecJobResult',
     'GetAppSpecJobAlertResult',
     'GetAppSpecJobEnvResult',
@@ -245,6 +262,7 @@ class AppSpec(dict):
                  domains: Optional[Sequence[str]] = None,
                  envs: Optional[Sequence['outputs.AppSpecEnv']] = None,
                  functions: Optional[Sequence['outputs.AppSpecFunction']] = None,
+                 ingress: Optional['outputs.AppSpecIngress'] = None,
                  jobs: Optional[Sequence['outputs.AppSpecJob']] = None,
                  region: Optional[str] = None,
                  services: Optional[Sequence['outputs.AppSpecService']] = None,
@@ -255,6 +273,7 @@ class AppSpec(dict):
         :param Sequence['AppSpecAlertArgs'] alerts: Describes an alert policy for the component.
         :param Sequence['AppSpecDomainNameArgs'] domain_names: Describes a domain where the application will be made available.
         :param Sequence['AppSpecEnvArgs'] envs: Describes an environment variable made available to an app competent.
+        :param 'AppSpecIngressArgs' ingress: Specification for component routing, rewrites, and redirects.
         :param str region: The slug for the DigitalOcean data center region hosting the app.
         """
         AppSpec._configure(
@@ -266,6 +285,7 @@ class AppSpec(dict):
             domains=domains,
             envs=envs,
             functions=functions,
+            ingress=ingress,
             jobs=jobs,
             region=region,
             services=services,
@@ -282,12 +302,19 @@ class AppSpec(dict):
              domains: Optional[Sequence[str]] = None,
              envs: Optional[Sequence['outputs.AppSpecEnv']] = None,
              functions: Optional[Sequence['outputs.AppSpecFunction']] = None,
+             ingress: Optional['outputs.AppSpecIngress'] = None,
              jobs: Optional[Sequence['outputs.AppSpecJob']] = None,
              region: Optional[str] = None,
              services: Optional[Sequence['outputs.AppSpecService']] = None,
              static_sites: Optional[Sequence['outputs.AppSpecStaticSite']] = None,
              workers: Optional[Sequence['outputs.AppSpecWorker']] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'domainNames' in kwargs:
+            domain_names = kwargs['domainNames']
+        if 'staticSites' in kwargs:
+            static_sites = kwargs['staticSites']
+
         _setter("name", name)
         if alerts is not None:
             _setter("alerts", alerts)
@@ -301,6 +328,8 @@ class AppSpec(dict):
             _setter("envs", envs)
         if functions is not None:
             _setter("functions", functions)
+        if ingress is not None:
+            _setter("ingress", ingress)
         if jobs is not None:
             _setter("jobs", jobs)
         if region is not None:
@@ -364,6 +393,14 @@ class AppSpec(dict):
 
     @property
     @pulumi.getter
+    def ingress(self) -> Optional['outputs.AppSpecIngress']:
+        """
+        Specification for component routing, rewrites, and redirects.
+        """
+        return pulumi.get(self, "ingress")
+
+    @property
+    @pulumi.getter
     def jobs(self) -> Optional[Sequence['outputs.AppSpecJob']]:
         return pulumi.get(self, "jobs")
 
@@ -410,7 +447,9 @@ class AppSpecAlert(dict):
              _setter: Callable[[Any, Any], None],
              rule: str,
              disabled: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("rule", rule)
         if disabled is not None:
             _setter("disabled", disabled)
@@ -494,7 +533,15 @@ class AppSpecDatabase(dict):
              name: Optional[str] = None,
              production: Optional[bool] = None,
              version: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'clusterName' in kwargs:
+            cluster_name = kwargs['clusterName']
+        if 'dbName' in kwargs:
+            db_name = kwargs['dbName']
+        if 'dbUser' in kwargs:
+            db_user = kwargs['dbUser']
+
         if cluster_name is not None:
             _setter("cluster_name", cluster_name)
         if db_name is not None:
@@ -596,7 +643,9 @@ class AppSpecDomainName(dict):
              type: Optional[str] = None,
              wildcard: Optional[bool] = None,
              zone: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("name", name)
         if type is not None:
             _setter("type", type)
@@ -665,7 +714,9 @@ class AppSpecEnv(dict):
              scope: Optional[str] = None,
              type: Optional[str] = None,
              value: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if key is not None:
             _setter("key", key)
         if scope is not None:
@@ -778,7 +829,13 @@ class AppSpecFunction(dict):
              log_destinations: Optional[Sequence['outputs.AppSpecFunctionLogDestination']] = None,
              routes: Optional[Sequence['outputs.AppSpecFunctionRoute']] = None,
              source_dir: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'logDestinations' in kwargs:
+            log_destinations = kwargs['logDestinations']
+        if 'sourceDir' in kwargs:
+            source_dir = kwargs['sourceDir']
+
         _setter("name", name)
         if alerts is not None:
             _setter("alerts", alerts)
@@ -821,6 +878,9 @@ class AppSpecFunction(dict):
         """
         The [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) policies of the app.
         """
+        warnings.warn("""Service level CORS rules are deprecated in favor of ingresses""", DeprecationWarning)
+        pulumi.log.warn("""cors is deprecated: Service level CORS rules are deprecated in favor of ingresses""")
+
         return pulumi.get(self, "cors")
 
     @property
@@ -869,6 +929,9 @@ class AppSpecFunction(dict):
         """
         An HTTP paths that should be routed to this component.
         """
+        warnings.warn("""Service level routes are deprecated in favor of ingresses""", DeprecationWarning)
+        pulumi.log.warn("""routes is deprecated: Service level routes are deprecated in favor of ingresses""")
+
         return pulumi.get(self, "routes")
 
     @property
@@ -911,7 +974,9 @@ class AppSpecFunctionAlert(dict):
              value: float,
              window: str,
              disabled: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("operator", operator)
         _setter("rule", rule)
         _setter("value", value)
@@ -998,6 +1063,10 @@ class AppSpecFunctionCors(dict):
                  max_age: Optional[str] = None):
         """
         :param bool allow_credentials: Whether browsers should expose the response to the client-side JavaScript code when the request's credentials mode is `include`. This configures the `Access-Control-Allow-Credentials` header.
+               
+               A spec can contain multiple components.
+               
+               A `service` can contain:
         :param Sequence[str] allow_headers: The set of allowed HTTP request headers. This configures the `Access-Control-Allow-Headers` header.
         :param Sequence[str] allow_methods: The set of allowed HTTP methods. This configures the `Access-Control-Allow-Methods` header.
         :param 'AppSpecFunctionCorsAllowOriginsArgs' allow_origins: The `Access-Control-Allow-Origin` can be
@@ -1022,7 +1091,21 @@ class AppSpecFunctionCors(dict):
              allow_origins: Optional['outputs.AppSpecFunctionCorsAllowOrigins'] = None,
              expose_headers: Optional[Sequence[str]] = None,
              max_age: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'allowCredentials' in kwargs:
+            allow_credentials = kwargs['allowCredentials']
+        if 'allowHeaders' in kwargs:
+            allow_headers = kwargs['allowHeaders']
+        if 'allowMethods' in kwargs:
+            allow_methods = kwargs['allowMethods']
+        if 'allowOrigins' in kwargs:
+            allow_origins = kwargs['allowOrigins']
+        if 'exposeHeaders' in kwargs:
+            expose_headers = kwargs['exposeHeaders']
+        if 'maxAge' in kwargs:
+            max_age = kwargs['maxAge']
+
         if allow_credentials is not None:
             _setter("allow_credentials", allow_credentials)
         if allow_headers is not None:
@@ -1041,6 +1124,10 @@ class AppSpecFunctionCors(dict):
     def allow_credentials(self) -> Optional[bool]:
         """
         Whether browsers should expose the response to the client-side JavaScript code when the request's credentials mode is `include`. This configures the `Access-Control-Allow-Credentials` header.
+
+        A spec can contain multiple components.
+
+        A `service` can contain:
         """
         return pulumi.get(self, "allow_credentials")
 
@@ -1108,7 +1195,9 @@ class AppSpecFunctionCorsAllowOrigins(dict):
              exact: Optional[str] = None,
              prefix: Optional[str] = None,
              regex: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if exact is not None:
             _setter("exact", exact)
         if prefix is not None:
@@ -1168,7 +1257,9 @@ class AppSpecFunctionEnv(dict):
              scope: Optional[str] = None,
              type: Optional[str] = None,
              value: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if key is not None:
             _setter("key", key)
         if scope is not None:
@@ -1247,7 +1338,11 @@ class AppSpecFunctionGit(dict):
              _setter: Callable[[Any, Any], None],
              branch: Optional[str] = None,
              repo_clone_url: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'repoCloneUrl' in kwargs:
+            repo_clone_url = kwargs['repoCloneUrl']
+
         if branch is not None:
             _setter("branch", branch)
         if repo_clone_url is not None:
@@ -1310,7 +1405,11 @@ class AppSpecFunctionGithub(dict):
              branch: Optional[str] = None,
              deploy_on_push: Optional[bool] = None,
              repo: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'deployOnPush' in kwargs:
+            deploy_on_push = kwargs['deployOnPush']
+
         if branch is not None:
             _setter("branch", branch)
         if deploy_on_push is not None:
@@ -1383,7 +1482,11 @@ class AppSpecFunctionGitlab(dict):
              branch: Optional[str] = None,
              deploy_on_push: Optional[bool] = None,
              repo: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'deployOnPush' in kwargs:
+            deploy_on_push = kwargs['deployOnPush']
+
         if branch is not None:
             _setter("branch", branch)
         if deploy_on_push is not None:
@@ -1443,7 +1546,9 @@ class AppSpecFunctionLogDestination(dict):
              datadog: Optional['outputs.AppSpecFunctionLogDestinationDatadog'] = None,
              logtail: Optional['outputs.AppSpecFunctionLogDestinationLogtail'] = None,
              papertrail: Optional['outputs.AppSpecFunctionLogDestinationPapertrail'] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("name", name)
         if datadog is not None:
             _setter("datadog", datadog)
@@ -1521,7 +1626,11 @@ class AppSpecFunctionLogDestinationDatadog(dict):
              _setter: Callable[[Any, Any], None],
              api_key: str,
              endpoint: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'apiKey' in kwargs:
+            api_key = kwargs['apiKey']
+
         _setter("api_key", api_key)
         if endpoint is not None:
             _setter("endpoint", endpoint)
@@ -1560,7 +1669,9 @@ class AppSpecFunctionLogDestinationLogtail(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              token: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("token", token)
 
     @property
@@ -1589,7 +1700,9 @@ class AppSpecFunctionLogDestinationPapertrail(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              endpoint: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("endpoint", endpoint)
 
     @property
@@ -1637,7 +1750,11 @@ class AppSpecFunctionRoute(dict):
              _setter: Callable[[Any, Any], None],
              path: Optional[str] = None,
              preserve_path_prefix: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'preservePathPrefix' in kwargs:
+            preserve_path_prefix = kwargs['preservePathPrefix']
+
         if path is not None:
             _setter("path", path)
         if preserve_path_prefix is not None:
@@ -1658,6 +1775,555 @@ class AppSpecFunctionRoute(dict):
         An optional flag to preserve the path that is forwarded to the backend service.
         """
         return pulumi.get(self, "preserve_path_prefix")
+
+
+@pulumi.output_type
+class AppSpecIngress(dict):
+    def __init__(__self__, *,
+                 rules: Optional[Sequence['outputs.AppSpecIngressRule']] = None):
+        """
+        :param Sequence['AppSpecIngressRuleArgs'] rules: The type of the alert to configure. Component app alert policies can be: `CPU_UTILIZATION`, `MEM_UTILIZATION`, or `RESTART_COUNT`.
+        """
+        AppSpecIngress._configure(
+            lambda key, value: pulumi.set(__self__, key, value),
+            rules=rules,
+        )
+    @staticmethod
+    def _configure(
+             _setter: Callable[[Any, Any], None],
+             rules: Optional[Sequence['outputs.AppSpecIngressRule']] = None,
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
+        if rules is not None:
+            _setter("rules", rules)
+
+    @property
+    @pulumi.getter
+    def rules(self) -> Optional[Sequence['outputs.AppSpecIngressRule']]:
+        """
+        The type of the alert to configure. Component app alert policies can be: `CPU_UTILIZATION`, `MEM_UTILIZATION`, or `RESTART_COUNT`.
+        """
+        return pulumi.get(self, "rules")
+
+
+@pulumi.output_type
+class AppSpecIngressRule(dict):
+    def __init__(__self__, *,
+                 component: Optional['outputs.AppSpecIngressRuleComponent'] = None,
+                 cors: Optional['outputs.AppSpecIngressRuleCors'] = None,
+                 match: Optional['outputs.AppSpecIngressRuleMatch'] = None,
+                 redirect: Optional['outputs.AppSpecIngressRuleRedirect'] = None):
+        """
+        :param 'AppSpecIngressRuleComponentArgs' component: The component to route to. Only one of `component` or `redirect` may be set.
+        :param 'AppSpecIngressRuleCorsArgs' cors: The [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) policies of the app.
+        :param 'AppSpecIngressRuleMatchArgs' match: The match configuration for the rule
+        :param 'AppSpecIngressRuleRedirectArgs' redirect: The redirect configuration for the rule. Only one of `component` or `redirect` may be set.
+        """
+        AppSpecIngressRule._configure(
+            lambda key, value: pulumi.set(__self__, key, value),
+            component=component,
+            cors=cors,
+            match=match,
+            redirect=redirect,
+        )
+    @staticmethod
+    def _configure(
+             _setter: Callable[[Any, Any], None],
+             component: Optional['outputs.AppSpecIngressRuleComponent'] = None,
+             cors: Optional['outputs.AppSpecIngressRuleCors'] = None,
+             match: Optional['outputs.AppSpecIngressRuleMatch'] = None,
+             redirect: Optional['outputs.AppSpecIngressRuleRedirect'] = None,
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
+        if component is not None:
+            _setter("component", component)
+        if cors is not None:
+            _setter("cors", cors)
+        if match is not None:
+            _setter("match", match)
+        if redirect is not None:
+            _setter("redirect", redirect)
+
+    @property
+    @pulumi.getter
+    def component(self) -> Optional['outputs.AppSpecIngressRuleComponent']:
+        """
+        The component to route to. Only one of `component` or `redirect` may be set.
+        """
+        return pulumi.get(self, "component")
+
+    @property
+    @pulumi.getter
+    def cors(self) -> Optional['outputs.AppSpecIngressRuleCors']:
+        """
+        The [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) policies of the app.
+        """
+        return pulumi.get(self, "cors")
+
+    @property
+    @pulumi.getter
+    def match(self) -> Optional['outputs.AppSpecIngressRuleMatch']:
+        """
+        The match configuration for the rule
+        """
+        return pulumi.get(self, "match")
+
+    @property
+    @pulumi.getter
+    def redirect(self) -> Optional['outputs.AppSpecIngressRuleRedirect']:
+        """
+        The redirect configuration for the rule. Only one of `component` or `redirect` may be set.
+        """
+        return pulumi.get(self, "redirect")
+
+
+@pulumi.output_type
+class AppSpecIngressRuleComponent(dict):
+    @staticmethod
+    def __key_warning(key: str):
+        suggest = None
+        if key == "preservePathPrefix":
+            suggest = "preserve_path_prefix"
+
+        if suggest:
+            pulumi.log.warn(f"Key '{key}' not found in AppSpecIngressRuleComponent. Access the value via the '{suggest}' property getter instead.")
+
+    def __getitem__(self, key: str) -> Any:
+        AppSpecIngressRuleComponent.__key_warning(key)
+        return super().__getitem__(key)
+
+    def get(self, key: str, default = None) -> Any:
+        AppSpecIngressRuleComponent.__key_warning(key)
+        return super().get(key, default)
+
+    def __init__(__self__, *,
+                 name: Optional[str] = None,
+                 preserve_path_prefix: Optional[bool] = None,
+                 rewrite: Optional[str] = None):
+        """
+        :param str name: The name of the component.
+        :param bool preserve_path_prefix: An optional flag to preserve the path that is forwarded to the backend service.
+        :param str rewrite: An optional field that will rewrite the path of the component to be what is specified here. This is mutually exclusive with `preserve_path_prefix`.
+        """
+        AppSpecIngressRuleComponent._configure(
+            lambda key, value: pulumi.set(__self__, key, value),
+            name=name,
+            preserve_path_prefix=preserve_path_prefix,
+            rewrite=rewrite,
+        )
+    @staticmethod
+    def _configure(
+             _setter: Callable[[Any, Any], None],
+             name: Optional[str] = None,
+             preserve_path_prefix: Optional[bool] = None,
+             rewrite: Optional[str] = None,
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'preservePathPrefix' in kwargs:
+            preserve_path_prefix = kwargs['preservePathPrefix']
+
+        if name is not None:
+            _setter("name", name)
+        if preserve_path_prefix is not None:
+            _setter("preserve_path_prefix", preserve_path_prefix)
+        if rewrite is not None:
+            _setter("rewrite", rewrite)
+
+    @property
+    @pulumi.getter
+    def name(self) -> Optional[str]:
+        """
+        The name of the component.
+        """
+        return pulumi.get(self, "name")
+
+    @property
+    @pulumi.getter(name="preservePathPrefix")
+    def preserve_path_prefix(self) -> Optional[bool]:
+        """
+        An optional flag to preserve the path that is forwarded to the backend service.
+        """
+        return pulumi.get(self, "preserve_path_prefix")
+
+    @property
+    @pulumi.getter
+    def rewrite(self) -> Optional[str]:
+        """
+        An optional field that will rewrite the path of the component to be what is specified here. This is mutually exclusive with `preserve_path_prefix`.
+        """
+        return pulumi.get(self, "rewrite")
+
+
+@pulumi.output_type
+class AppSpecIngressRuleCors(dict):
+    @staticmethod
+    def __key_warning(key: str):
+        suggest = None
+        if key == "allowCredentials":
+            suggest = "allow_credentials"
+        elif key == "allowHeaders":
+            suggest = "allow_headers"
+        elif key == "allowMethods":
+            suggest = "allow_methods"
+        elif key == "allowOrigins":
+            suggest = "allow_origins"
+        elif key == "exposeHeaders":
+            suggest = "expose_headers"
+        elif key == "maxAge":
+            suggest = "max_age"
+
+        if suggest:
+            pulumi.log.warn(f"Key '{key}' not found in AppSpecIngressRuleCors. Access the value via the '{suggest}' property getter instead.")
+
+    def __getitem__(self, key: str) -> Any:
+        AppSpecIngressRuleCors.__key_warning(key)
+        return super().__getitem__(key)
+
+    def get(self, key: str, default = None) -> Any:
+        AppSpecIngressRuleCors.__key_warning(key)
+        return super().get(key, default)
+
+    def __init__(__self__, *,
+                 allow_credentials: Optional[bool] = None,
+                 allow_headers: Optional[Sequence[str]] = None,
+                 allow_methods: Optional[Sequence[str]] = None,
+                 allow_origins: Optional['outputs.AppSpecIngressRuleCorsAllowOrigins'] = None,
+                 expose_headers: Optional[Sequence[str]] = None,
+                 max_age: Optional[str] = None):
+        """
+        :param bool allow_credentials: Whether browsers should expose the response to the client-side JavaScript code when the request's credentials mode is `include`. This configures the `Access-Control-Allow-Credentials` header.
+               
+               A spec can contain multiple components.
+               
+               A `service` can contain:
+        :param Sequence[str] allow_headers: The set of allowed HTTP request headers. This configures the `Access-Control-Allow-Headers` header.
+        :param Sequence[str] allow_methods: The set of allowed HTTP methods. This configures the `Access-Control-Allow-Methods` header.
+        :param 'AppSpecIngressRuleCorsAllowOriginsArgs' allow_origins: The `Access-Control-Allow-Origin` can be
+        :param Sequence[str] expose_headers: The set of HTTP response headers that browsers are allowed to access. This configures the `Access-Control-Expose-Headers` header.
+        :param str max_age: An optional duration specifying how long browsers can cache the results of a preflight request. This configures the Access-Control-Max-Age header. Example: `5h30m`.
+        """
+        AppSpecIngressRuleCors._configure(
+            lambda key, value: pulumi.set(__self__, key, value),
+            allow_credentials=allow_credentials,
+            allow_headers=allow_headers,
+            allow_methods=allow_methods,
+            allow_origins=allow_origins,
+            expose_headers=expose_headers,
+            max_age=max_age,
+        )
+    @staticmethod
+    def _configure(
+             _setter: Callable[[Any, Any], None],
+             allow_credentials: Optional[bool] = None,
+             allow_headers: Optional[Sequence[str]] = None,
+             allow_methods: Optional[Sequence[str]] = None,
+             allow_origins: Optional['outputs.AppSpecIngressRuleCorsAllowOrigins'] = None,
+             expose_headers: Optional[Sequence[str]] = None,
+             max_age: Optional[str] = None,
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'allowCredentials' in kwargs:
+            allow_credentials = kwargs['allowCredentials']
+        if 'allowHeaders' in kwargs:
+            allow_headers = kwargs['allowHeaders']
+        if 'allowMethods' in kwargs:
+            allow_methods = kwargs['allowMethods']
+        if 'allowOrigins' in kwargs:
+            allow_origins = kwargs['allowOrigins']
+        if 'exposeHeaders' in kwargs:
+            expose_headers = kwargs['exposeHeaders']
+        if 'maxAge' in kwargs:
+            max_age = kwargs['maxAge']
+
+        if allow_credentials is not None:
+            _setter("allow_credentials", allow_credentials)
+        if allow_headers is not None:
+            _setter("allow_headers", allow_headers)
+        if allow_methods is not None:
+            _setter("allow_methods", allow_methods)
+        if allow_origins is not None:
+            _setter("allow_origins", allow_origins)
+        if expose_headers is not None:
+            _setter("expose_headers", expose_headers)
+        if max_age is not None:
+            _setter("max_age", max_age)
+
+    @property
+    @pulumi.getter(name="allowCredentials")
+    def allow_credentials(self) -> Optional[bool]:
+        """
+        Whether browsers should expose the response to the client-side JavaScript code when the request's credentials mode is `include`. This configures the `Access-Control-Allow-Credentials` header.
+
+        A spec can contain multiple components.
+
+        A `service` can contain:
+        """
+        return pulumi.get(self, "allow_credentials")
+
+    @property
+    @pulumi.getter(name="allowHeaders")
+    def allow_headers(self) -> Optional[Sequence[str]]:
+        """
+        The set of allowed HTTP request headers. This configures the `Access-Control-Allow-Headers` header.
+        """
+        return pulumi.get(self, "allow_headers")
+
+    @property
+    @pulumi.getter(name="allowMethods")
+    def allow_methods(self) -> Optional[Sequence[str]]:
+        """
+        The set of allowed HTTP methods. This configures the `Access-Control-Allow-Methods` header.
+        """
+        return pulumi.get(self, "allow_methods")
+
+    @property
+    @pulumi.getter(name="allowOrigins")
+    def allow_origins(self) -> Optional['outputs.AppSpecIngressRuleCorsAllowOrigins']:
+        """
+        The `Access-Control-Allow-Origin` can be
+        """
+        return pulumi.get(self, "allow_origins")
+
+    @property
+    @pulumi.getter(name="exposeHeaders")
+    def expose_headers(self) -> Optional[Sequence[str]]:
+        """
+        The set of HTTP response headers that browsers are allowed to access. This configures the `Access-Control-Expose-Headers` header.
+        """
+        return pulumi.get(self, "expose_headers")
+
+    @property
+    @pulumi.getter(name="maxAge")
+    def max_age(self) -> Optional[str]:
+        """
+        An optional duration specifying how long browsers can cache the results of a preflight request. This configures the Access-Control-Max-Age header. Example: `5h30m`.
+        """
+        return pulumi.get(self, "max_age")
+
+
+@pulumi.output_type
+class AppSpecIngressRuleCorsAllowOrigins(dict):
+    def __init__(__self__, *,
+                 exact: Optional[str] = None,
+                 prefix: Optional[str] = None,
+                 regex: Optional[str] = None):
+        """
+        :param str exact: The `Access-Control-Allow-Origin` header will be set to the client's origin only if the client's origin exactly matches the value you provide.
+        :param str prefix: The `Access-Control-Allow-Origin` header will be set to the client's origin if the beginning of the client's origin matches the value you provide.
+        :param str regex: The `Access-Control-Allow-Origin` header will be set to the client's origin if the client’s origin matches the regex you provide, in [RE2 style syntax](https://github.com/google/re2/wiki/Syntax).
+        """
+        AppSpecIngressRuleCorsAllowOrigins._configure(
+            lambda key, value: pulumi.set(__self__, key, value),
+            exact=exact,
+            prefix=prefix,
+            regex=regex,
+        )
+    @staticmethod
+    def _configure(
+             _setter: Callable[[Any, Any], None],
+             exact: Optional[str] = None,
+             prefix: Optional[str] = None,
+             regex: Optional[str] = None,
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
+        if exact is not None:
+            _setter("exact", exact)
+        if prefix is not None:
+            _setter("prefix", prefix)
+        if regex is not None:
+            _setter("regex", regex)
+
+    @property
+    @pulumi.getter
+    def exact(self) -> Optional[str]:
+        """
+        The `Access-Control-Allow-Origin` header will be set to the client's origin only if the client's origin exactly matches the value you provide.
+        """
+        return pulumi.get(self, "exact")
+
+    @property
+    @pulumi.getter
+    def prefix(self) -> Optional[str]:
+        """
+        The `Access-Control-Allow-Origin` header will be set to the client's origin if the beginning of the client's origin matches the value you provide.
+        """
+        return pulumi.get(self, "prefix")
+
+    @property
+    @pulumi.getter
+    def regex(self) -> Optional[str]:
+        """
+        The `Access-Control-Allow-Origin` header will be set to the client's origin if the client’s origin matches the regex you provide, in [RE2 style syntax](https://github.com/google/re2/wiki/Syntax).
+        """
+        return pulumi.get(self, "regex")
+
+
+@pulumi.output_type
+class AppSpecIngressRuleMatch(dict):
+    def __init__(__self__, *,
+                 path: Optional['outputs.AppSpecIngressRuleMatchPath'] = None):
+        """
+        :param 'AppSpecIngressRuleMatchPathArgs' path: Paths must start with `/` and must be unique within the app.
+        """
+        AppSpecIngressRuleMatch._configure(
+            lambda key, value: pulumi.set(__self__, key, value),
+            path=path,
+        )
+    @staticmethod
+    def _configure(
+             _setter: Callable[[Any, Any], None],
+             path: Optional['outputs.AppSpecIngressRuleMatchPath'] = None,
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
+        if path is not None:
+            _setter("path", path)
+
+    @property
+    @pulumi.getter
+    def path(self) -> Optional['outputs.AppSpecIngressRuleMatchPath']:
+        """
+        Paths must start with `/` and must be unique within the app.
+        """
+        return pulumi.get(self, "path")
+
+
+@pulumi.output_type
+class AppSpecIngressRuleMatchPath(dict):
+    def __init__(__self__, *,
+                 prefix: Optional[str] = None):
+        """
+        :param str prefix: The `Access-Control-Allow-Origin` header will be set to the client's origin if the beginning of the client's origin matches the value you provide.
+        """
+        AppSpecIngressRuleMatchPath._configure(
+            lambda key, value: pulumi.set(__self__, key, value),
+            prefix=prefix,
+        )
+    @staticmethod
+    def _configure(
+             _setter: Callable[[Any, Any], None],
+             prefix: Optional[str] = None,
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
+        if prefix is not None:
+            _setter("prefix", prefix)
+
+    @property
+    @pulumi.getter
+    def prefix(self) -> Optional[str]:
+        """
+        The `Access-Control-Allow-Origin` header will be set to the client's origin if the beginning of the client's origin matches the value you provide.
+        """
+        return pulumi.get(self, "prefix")
+
+
+@pulumi.output_type
+class AppSpecIngressRuleRedirect(dict):
+    @staticmethod
+    def __key_warning(key: str):
+        suggest = None
+        if key == "redirectCode":
+            suggest = "redirect_code"
+
+        if suggest:
+            pulumi.log.warn(f"Key '{key}' not found in AppSpecIngressRuleRedirect. Access the value via the '{suggest}' property getter instead.")
+
+    def __getitem__(self, key: str) -> Any:
+        AppSpecIngressRuleRedirect.__key_warning(key)
+        return super().__getitem__(key)
+
+    def get(self, key: str, default = None) -> Any:
+        AppSpecIngressRuleRedirect.__key_warning(key)
+        return super().get(key, default)
+
+    def __init__(__self__, *,
+                 authority: Optional[str] = None,
+                 port: Optional[int] = None,
+                 redirect_code: Optional[int] = None,
+                 scheme: Optional[str] = None,
+                 uri: Optional[str] = None):
+        """
+        :param str authority: The authority/host to redirect to. This can be a hostname or IP address.
+        :param int port: The port to redirect to.
+        :param int redirect_code: The redirect code to use. Supported values are `300`, `301`, `302`, `303`, `304`, `307`, `308`.
+        :param str scheme: The scheme to redirect to. Supported values are `http` or `https`
+        :param str uri: An optional URI path to redirect to.
+        """
+        AppSpecIngressRuleRedirect._configure(
+            lambda key, value: pulumi.set(__self__, key, value),
+            authority=authority,
+            port=port,
+            redirect_code=redirect_code,
+            scheme=scheme,
+            uri=uri,
+        )
+    @staticmethod
+    def _configure(
+             _setter: Callable[[Any, Any], None],
+             authority: Optional[str] = None,
+             port: Optional[int] = None,
+             redirect_code: Optional[int] = None,
+             scheme: Optional[str] = None,
+             uri: Optional[str] = None,
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'redirectCode' in kwargs:
+            redirect_code = kwargs['redirectCode']
+
+        if authority is not None:
+            _setter("authority", authority)
+        if port is not None:
+            _setter("port", port)
+        if redirect_code is not None:
+            _setter("redirect_code", redirect_code)
+        if scheme is not None:
+            _setter("scheme", scheme)
+        if uri is not None:
+            _setter("uri", uri)
+
+    @property
+    @pulumi.getter
+    def authority(self) -> Optional[str]:
+        """
+        The authority/host to redirect to. This can be a hostname or IP address.
+        """
+        return pulumi.get(self, "authority")
+
+    @property
+    @pulumi.getter
+    def port(self) -> Optional[int]:
+        """
+        The port to redirect to.
+        """
+        return pulumi.get(self, "port")
+
+    @property
+    @pulumi.getter(name="redirectCode")
+    def redirect_code(self) -> Optional[int]:
+        """
+        The redirect code to use. Supported values are `300`, `301`, `302`, `303`, `304`, `307`, `308`.
+        """
+        return pulumi.get(self, "redirect_code")
+
+    @property
+    @pulumi.getter
+    def scheme(self) -> Optional[str]:
+        """
+        The scheme to redirect to. Supported values are `http` or `https`
+        """
+        return pulumi.get(self, "scheme")
+
+    @property
+    @pulumi.getter
+    def uri(self) -> Optional[str]:
+        """
+        An optional URI path to redirect to.
+        """
+        return pulumi.get(self, "uri")
 
 
 @pulumi.output_type
@@ -1766,7 +2432,25 @@ class AppSpecJob(dict):
              log_destinations: Optional[Sequence['outputs.AppSpecJobLogDestination']] = None,
              run_command: Optional[str] = None,
              source_dir: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'buildCommand' in kwargs:
+            build_command = kwargs['buildCommand']
+        if 'dockerfilePath' in kwargs:
+            dockerfile_path = kwargs['dockerfilePath']
+        if 'environmentSlug' in kwargs:
+            environment_slug = kwargs['environmentSlug']
+        if 'instanceCount' in kwargs:
+            instance_count = kwargs['instanceCount']
+        if 'instanceSizeSlug' in kwargs:
+            instance_size_slug = kwargs['instanceSizeSlug']
+        if 'logDestinations' in kwargs:
+            log_destinations = kwargs['logDestinations']
+        if 'runCommand' in kwargs:
+            run_command = kwargs['runCommand']
+        if 'sourceDir' in kwargs:
+            source_dir = kwargs['sourceDir']
+
         _setter("name", name)
         if alerts is not None:
             _setter("alerts", alerts)
@@ -1959,7 +2643,9 @@ class AppSpecJobAlert(dict):
              value: float,
              window: str,
              disabled: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("operator", operator)
         _setter("rule", rule)
         _setter("value", value)
@@ -2035,7 +2721,9 @@ class AppSpecJobEnv(dict):
              scope: Optional[str] = None,
              type: Optional[str] = None,
              value: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if key is not None:
             _setter("key", key)
         if scope is not None:
@@ -2114,7 +2802,11 @@ class AppSpecJobGit(dict):
              _setter: Callable[[Any, Any], None],
              branch: Optional[str] = None,
              repo_clone_url: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'repoCloneUrl' in kwargs:
+            repo_clone_url = kwargs['repoCloneUrl']
+
         if branch is not None:
             _setter("branch", branch)
         if repo_clone_url is not None:
@@ -2177,7 +2869,11 @@ class AppSpecJobGithub(dict):
              branch: Optional[str] = None,
              deploy_on_push: Optional[bool] = None,
              repo: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'deployOnPush' in kwargs:
+            deploy_on_push = kwargs['deployOnPush']
+
         if branch is not None:
             _setter("branch", branch)
         if deploy_on_push is not None:
@@ -2250,7 +2946,11 @@ class AppSpecJobGitlab(dict):
              branch: Optional[str] = None,
              deploy_on_push: Optional[bool] = None,
              repo: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'deployOnPush' in kwargs:
+            deploy_on_push = kwargs['deployOnPush']
+
         if branch is not None:
             _setter("branch", branch)
         if deploy_on_push is not None:
@@ -2333,7 +3033,13 @@ class AppSpecJobImage(dict):
              deploy_on_pushes: Optional[Sequence['outputs.AppSpecJobImageDeployOnPush']] = None,
              registry: Optional[str] = None,
              tag: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'registryType' in kwargs:
+            registry_type = kwargs['registryType']
+        if 'deployOnPushes' in kwargs:
+            deploy_on_pushes = kwargs['deployOnPushes']
+
         _setter("registry_type", registry_type)
         _setter("repository", repository)
         if deploy_on_pushes is not None:
@@ -2399,7 +3105,9 @@ class AppSpecJobImageDeployOnPush(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              enabled: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if enabled is not None:
             _setter("enabled", enabled)
 
@@ -2439,7 +3147,9 @@ class AppSpecJobLogDestination(dict):
              datadog: Optional['outputs.AppSpecJobLogDestinationDatadog'] = None,
              logtail: Optional['outputs.AppSpecJobLogDestinationLogtail'] = None,
              papertrail: Optional['outputs.AppSpecJobLogDestinationPapertrail'] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("name", name)
         if datadog is not None:
             _setter("datadog", datadog)
@@ -2517,7 +3227,11 @@ class AppSpecJobLogDestinationDatadog(dict):
              _setter: Callable[[Any, Any], None],
              api_key: str,
              endpoint: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'apiKey' in kwargs:
+            api_key = kwargs['apiKey']
+
         _setter("api_key", api_key)
         if endpoint is not None:
             _setter("endpoint", endpoint)
@@ -2556,7 +3270,9 @@ class AppSpecJobLogDestinationLogtail(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              token: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("token", token)
 
     @property
@@ -2585,7 +3301,9 @@ class AppSpecJobLogDestinationPapertrail(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              endpoint: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("endpoint", endpoint)
 
     @property
@@ -2725,7 +3443,31 @@ class AppSpecService(dict):
              routes: Optional[Sequence['outputs.AppSpecServiceRoute']] = None,
              run_command: Optional[str] = None,
              source_dir: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'buildCommand' in kwargs:
+            build_command = kwargs['buildCommand']
+        if 'dockerfilePath' in kwargs:
+            dockerfile_path = kwargs['dockerfilePath']
+        if 'environmentSlug' in kwargs:
+            environment_slug = kwargs['environmentSlug']
+        if 'healthCheck' in kwargs:
+            health_check = kwargs['healthCheck']
+        if 'httpPort' in kwargs:
+            http_port = kwargs['httpPort']
+        if 'instanceCount' in kwargs:
+            instance_count = kwargs['instanceCount']
+        if 'instanceSizeSlug' in kwargs:
+            instance_size_slug = kwargs['instanceSizeSlug']
+        if 'internalPorts' in kwargs:
+            internal_ports = kwargs['internalPorts']
+        if 'logDestinations' in kwargs:
+            log_destinations = kwargs['logDestinations']
+        if 'runCommand' in kwargs:
+            run_command = kwargs['runCommand']
+        if 'sourceDir' in kwargs:
+            source_dir = kwargs['sourceDir']
+
         _setter("name", name)
         if alerts is not None:
             _setter("alerts", alerts)
@@ -2796,6 +3538,9 @@ class AppSpecService(dict):
         """
         The [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) policies of the app.
         """
+        warnings.warn("""Service level CORS rules are deprecated in favor of ingresses""", DeprecationWarning)
+        pulumi.log.warn("""cors is deprecated: Service level CORS rules are deprecated in favor of ingresses""")
+
         return pulumi.get(self, "cors")
 
     @property
@@ -2908,6 +3653,9 @@ class AppSpecService(dict):
         """
         An HTTP paths that should be routed to this component.
         """
+        warnings.warn("""Service level routes are deprecated in favor of ingresses""", DeprecationWarning)
+        pulumi.log.warn("""routes is deprecated: Service level routes are deprecated in favor of ingresses""")
+
         return pulumi.get(self, "routes")
 
     @property
@@ -2958,7 +3706,9 @@ class AppSpecServiceAlert(dict):
              value: float,
              window: str,
              disabled: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("operator", operator)
         _setter("rule", rule)
         _setter("value", value)
@@ -3045,6 +3795,10 @@ class AppSpecServiceCors(dict):
                  max_age: Optional[str] = None):
         """
         :param bool allow_credentials: Whether browsers should expose the response to the client-side JavaScript code when the request's credentials mode is `include`. This configures the `Access-Control-Allow-Credentials` header.
+               
+               A spec can contain multiple components.
+               
+               A `service` can contain:
         :param Sequence[str] allow_headers: The set of allowed HTTP request headers. This configures the `Access-Control-Allow-Headers` header.
         :param Sequence[str] allow_methods: The set of allowed HTTP methods. This configures the `Access-Control-Allow-Methods` header.
         :param 'AppSpecServiceCorsAllowOriginsArgs' allow_origins: The `Access-Control-Allow-Origin` can be
@@ -3069,7 +3823,21 @@ class AppSpecServiceCors(dict):
              allow_origins: Optional['outputs.AppSpecServiceCorsAllowOrigins'] = None,
              expose_headers: Optional[Sequence[str]] = None,
              max_age: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'allowCredentials' in kwargs:
+            allow_credentials = kwargs['allowCredentials']
+        if 'allowHeaders' in kwargs:
+            allow_headers = kwargs['allowHeaders']
+        if 'allowMethods' in kwargs:
+            allow_methods = kwargs['allowMethods']
+        if 'allowOrigins' in kwargs:
+            allow_origins = kwargs['allowOrigins']
+        if 'exposeHeaders' in kwargs:
+            expose_headers = kwargs['exposeHeaders']
+        if 'maxAge' in kwargs:
+            max_age = kwargs['maxAge']
+
         if allow_credentials is not None:
             _setter("allow_credentials", allow_credentials)
         if allow_headers is not None:
@@ -3088,6 +3856,10 @@ class AppSpecServiceCors(dict):
     def allow_credentials(self) -> Optional[bool]:
         """
         Whether browsers should expose the response to the client-side JavaScript code when the request's credentials mode is `include`. This configures the `Access-Control-Allow-Credentials` header.
+
+        A spec can contain multiple components.
+
+        A `service` can contain:
         """
         return pulumi.get(self, "allow_credentials")
 
@@ -3155,7 +3927,9 @@ class AppSpecServiceCorsAllowOrigins(dict):
              exact: Optional[str] = None,
              prefix: Optional[str] = None,
              regex: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if exact is not None:
             _setter("exact", exact)
         if prefix is not None:
@@ -3215,7 +3989,9 @@ class AppSpecServiceEnv(dict):
              scope: Optional[str] = None,
              type: Optional[str] = None,
              value: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if key is not None:
             _setter("key", key)
         if scope is not None:
@@ -3294,7 +4070,11 @@ class AppSpecServiceGit(dict):
              _setter: Callable[[Any, Any], None],
              branch: Optional[str] = None,
              repo_clone_url: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'repoCloneUrl' in kwargs:
+            repo_clone_url = kwargs['repoCloneUrl']
+
         if branch is not None:
             _setter("branch", branch)
         if repo_clone_url is not None:
@@ -3357,7 +4137,11 @@ class AppSpecServiceGithub(dict):
              branch: Optional[str] = None,
              deploy_on_push: Optional[bool] = None,
              repo: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'deployOnPush' in kwargs:
+            deploy_on_push = kwargs['deployOnPush']
+
         if branch is not None:
             _setter("branch", branch)
         if deploy_on_push is not None:
@@ -3430,7 +4214,11 @@ class AppSpecServiceGitlab(dict):
              branch: Optional[str] = None,
              deploy_on_push: Optional[bool] = None,
              repo: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'deployOnPush' in kwargs:
+            deploy_on_push = kwargs['deployOnPush']
+
         if branch is not None:
             _setter("branch", branch)
         if deploy_on_push is not None:
@@ -3525,7 +4313,21 @@ class AppSpecServiceHealthCheck(dict):
              period_seconds: Optional[int] = None,
              success_threshold: Optional[int] = None,
              timeout_seconds: Optional[int] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'failureThreshold' in kwargs:
+            failure_threshold = kwargs['failureThreshold']
+        if 'httpPath' in kwargs:
+            http_path = kwargs['httpPath']
+        if 'initialDelaySeconds' in kwargs:
+            initial_delay_seconds = kwargs['initialDelaySeconds']
+        if 'periodSeconds' in kwargs:
+            period_seconds = kwargs['periodSeconds']
+        if 'successThreshold' in kwargs:
+            success_threshold = kwargs['successThreshold']
+        if 'timeoutSeconds' in kwargs:
+            timeout_seconds = kwargs['timeoutSeconds']
+
         if failure_threshold is not None:
             _setter("failure_threshold", failure_threshold)
         if http_path is not None:
@@ -3638,7 +4440,13 @@ class AppSpecServiceImage(dict):
              deploy_on_pushes: Optional[Sequence['outputs.AppSpecServiceImageDeployOnPush']] = None,
              registry: Optional[str] = None,
              tag: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'registryType' in kwargs:
+            registry_type = kwargs['registryType']
+        if 'deployOnPushes' in kwargs:
+            deploy_on_pushes = kwargs['deployOnPushes']
+
         _setter("registry_type", registry_type)
         _setter("repository", repository)
         if deploy_on_pushes is not None:
@@ -3704,7 +4512,9 @@ class AppSpecServiceImageDeployOnPush(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              enabled: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if enabled is not None:
             _setter("enabled", enabled)
 
@@ -3744,7 +4554,9 @@ class AppSpecServiceLogDestination(dict):
              datadog: Optional['outputs.AppSpecServiceLogDestinationDatadog'] = None,
              logtail: Optional['outputs.AppSpecServiceLogDestinationLogtail'] = None,
              papertrail: Optional['outputs.AppSpecServiceLogDestinationPapertrail'] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("name", name)
         if datadog is not None:
             _setter("datadog", datadog)
@@ -3822,7 +4634,11 @@ class AppSpecServiceLogDestinationDatadog(dict):
              _setter: Callable[[Any, Any], None],
              api_key: str,
              endpoint: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'apiKey' in kwargs:
+            api_key = kwargs['apiKey']
+
         _setter("api_key", api_key)
         if endpoint is not None:
             _setter("endpoint", endpoint)
@@ -3861,7 +4677,9 @@ class AppSpecServiceLogDestinationLogtail(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              token: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("token", token)
 
     @property
@@ -3890,7 +4708,9 @@ class AppSpecServiceLogDestinationPapertrail(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              endpoint: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("endpoint", endpoint)
 
     @property
@@ -3938,7 +4758,11 @@ class AppSpecServiceRoute(dict):
              _setter: Callable[[Any, Any], None],
              path: Optional[str] = None,
              preserve_path_prefix: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'preservePathPrefix' in kwargs:
+            preserve_path_prefix = kwargs['preservePathPrefix']
+
         if path is not None:
             _setter("path", path)
         if preserve_path_prefix is not None:
@@ -4063,7 +4887,25 @@ class AppSpecStaticSite(dict):
              output_dir: Optional[str] = None,
              routes: Optional[Sequence['outputs.AppSpecStaticSiteRoute']] = None,
              source_dir: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'buildCommand' in kwargs:
+            build_command = kwargs['buildCommand']
+        if 'catchallDocument' in kwargs:
+            catchall_document = kwargs['catchallDocument']
+        if 'dockerfilePath' in kwargs:
+            dockerfile_path = kwargs['dockerfilePath']
+        if 'environmentSlug' in kwargs:
+            environment_slug = kwargs['environmentSlug']
+        if 'errorDocument' in kwargs:
+            error_document = kwargs['errorDocument']
+        if 'indexDocument' in kwargs:
+            index_document = kwargs['indexDocument']
+        if 'outputDir' in kwargs:
+            output_dir = kwargs['outputDir']
+        if 'sourceDir' in kwargs:
+            source_dir = kwargs['sourceDir']
+
         _setter("name", name)
         if build_command is not None:
             _setter("build_command", build_command)
@@ -4124,6 +4966,9 @@ class AppSpecStaticSite(dict):
         """
         The [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) policies of the app.
         """
+        warnings.warn("""Service level CORS rules are deprecated in favor of ingresses""", DeprecationWarning)
+        pulumi.log.warn("""cors is deprecated: Service level CORS rules are deprecated in favor of ingresses""")
+
         return pulumi.get(self, "cors")
 
     @property
@@ -4204,6 +5049,9 @@ class AppSpecStaticSite(dict):
         """
         An HTTP paths that should be routed to this component.
         """
+        warnings.warn("""Service level routes are deprecated in favor of ingresses""", DeprecationWarning)
+        pulumi.log.warn("""routes is deprecated: Service level routes are deprecated in favor of ingresses""")
+
         return pulumi.get(self, "routes")
 
     @property
@@ -4253,6 +5101,10 @@ class AppSpecStaticSiteCors(dict):
                  max_age: Optional[str] = None):
         """
         :param bool allow_credentials: Whether browsers should expose the response to the client-side JavaScript code when the request's credentials mode is `include`. This configures the `Access-Control-Allow-Credentials` header.
+               
+               A spec can contain multiple components.
+               
+               A `service` can contain:
         :param Sequence[str] allow_headers: The set of allowed HTTP request headers. This configures the `Access-Control-Allow-Headers` header.
         :param Sequence[str] allow_methods: The set of allowed HTTP methods. This configures the `Access-Control-Allow-Methods` header.
         :param 'AppSpecStaticSiteCorsAllowOriginsArgs' allow_origins: The `Access-Control-Allow-Origin` can be
@@ -4277,7 +5129,21 @@ class AppSpecStaticSiteCors(dict):
              allow_origins: Optional['outputs.AppSpecStaticSiteCorsAllowOrigins'] = None,
              expose_headers: Optional[Sequence[str]] = None,
              max_age: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'allowCredentials' in kwargs:
+            allow_credentials = kwargs['allowCredentials']
+        if 'allowHeaders' in kwargs:
+            allow_headers = kwargs['allowHeaders']
+        if 'allowMethods' in kwargs:
+            allow_methods = kwargs['allowMethods']
+        if 'allowOrigins' in kwargs:
+            allow_origins = kwargs['allowOrigins']
+        if 'exposeHeaders' in kwargs:
+            expose_headers = kwargs['exposeHeaders']
+        if 'maxAge' in kwargs:
+            max_age = kwargs['maxAge']
+
         if allow_credentials is not None:
             _setter("allow_credentials", allow_credentials)
         if allow_headers is not None:
@@ -4296,6 +5162,10 @@ class AppSpecStaticSiteCors(dict):
     def allow_credentials(self) -> Optional[bool]:
         """
         Whether browsers should expose the response to the client-side JavaScript code when the request's credentials mode is `include`. This configures the `Access-Control-Allow-Credentials` header.
+
+        A spec can contain multiple components.
+
+        A `service` can contain:
         """
         return pulumi.get(self, "allow_credentials")
 
@@ -4363,7 +5233,9 @@ class AppSpecStaticSiteCorsAllowOrigins(dict):
              exact: Optional[str] = None,
              prefix: Optional[str] = None,
              regex: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if exact is not None:
             _setter("exact", exact)
         if prefix is not None:
@@ -4423,7 +5295,9 @@ class AppSpecStaticSiteEnv(dict):
              scope: Optional[str] = None,
              type: Optional[str] = None,
              value: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if key is not None:
             _setter("key", key)
         if scope is not None:
@@ -4502,7 +5376,11 @@ class AppSpecStaticSiteGit(dict):
              _setter: Callable[[Any, Any], None],
              branch: Optional[str] = None,
              repo_clone_url: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'repoCloneUrl' in kwargs:
+            repo_clone_url = kwargs['repoCloneUrl']
+
         if branch is not None:
             _setter("branch", branch)
         if repo_clone_url is not None:
@@ -4565,7 +5443,11 @@ class AppSpecStaticSiteGithub(dict):
              branch: Optional[str] = None,
              deploy_on_push: Optional[bool] = None,
              repo: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'deployOnPush' in kwargs:
+            deploy_on_push = kwargs['deployOnPush']
+
         if branch is not None:
             _setter("branch", branch)
         if deploy_on_push is not None:
@@ -4638,7 +5520,11 @@ class AppSpecStaticSiteGitlab(dict):
              branch: Optional[str] = None,
              deploy_on_push: Optional[bool] = None,
              repo: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'deployOnPush' in kwargs:
+            deploy_on_push = kwargs['deployOnPush']
+
         if branch is not None:
             _setter("branch", branch)
         if deploy_on_push is not None:
@@ -4707,7 +5593,11 @@ class AppSpecStaticSiteRoute(dict):
              _setter: Callable[[Any, Any], None],
              path: Optional[str] = None,
              preserve_path_prefix: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'preservePathPrefix' in kwargs:
+            preserve_path_prefix = kwargs['preservePathPrefix']
+
         if path is not None:
             _setter("path", path)
         if preserve_path_prefix is not None:
@@ -4832,7 +5722,25 @@ class AppSpecWorker(dict):
              log_destinations: Optional[Sequence['outputs.AppSpecWorkerLogDestination']] = None,
              run_command: Optional[str] = None,
              source_dir: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'buildCommand' in kwargs:
+            build_command = kwargs['buildCommand']
+        if 'dockerfilePath' in kwargs:
+            dockerfile_path = kwargs['dockerfilePath']
+        if 'environmentSlug' in kwargs:
+            environment_slug = kwargs['environmentSlug']
+        if 'instanceCount' in kwargs:
+            instance_count = kwargs['instanceCount']
+        if 'instanceSizeSlug' in kwargs:
+            instance_size_slug = kwargs['instanceSizeSlug']
+        if 'logDestinations' in kwargs:
+            log_destinations = kwargs['logDestinations']
+        if 'runCommand' in kwargs:
+            run_command = kwargs['runCommand']
+        if 'sourceDir' in kwargs:
+            source_dir = kwargs['sourceDir']
+
         _setter("name", name)
         if alerts is not None:
             _setter("alerts", alerts)
@@ -5015,7 +5923,9 @@ class AppSpecWorkerAlert(dict):
              value: float,
              window: str,
              disabled: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("operator", operator)
         _setter("rule", rule)
         _setter("value", value)
@@ -5091,7 +6001,9 @@ class AppSpecWorkerEnv(dict):
              scope: Optional[str] = None,
              type: Optional[str] = None,
              value: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if key is not None:
             _setter("key", key)
         if scope is not None:
@@ -5170,7 +6082,11 @@ class AppSpecWorkerGit(dict):
              _setter: Callable[[Any, Any], None],
              branch: Optional[str] = None,
              repo_clone_url: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'repoCloneUrl' in kwargs:
+            repo_clone_url = kwargs['repoCloneUrl']
+
         if branch is not None:
             _setter("branch", branch)
         if repo_clone_url is not None:
@@ -5233,7 +6149,11 @@ class AppSpecWorkerGithub(dict):
              branch: Optional[str] = None,
              deploy_on_push: Optional[bool] = None,
              repo: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'deployOnPush' in kwargs:
+            deploy_on_push = kwargs['deployOnPush']
+
         if branch is not None:
             _setter("branch", branch)
         if deploy_on_push is not None:
@@ -5306,7 +6226,11 @@ class AppSpecWorkerGitlab(dict):
              branch: Optional[str] = None,
              deploy_on_push: Optional[bool] = None,
              repo: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'deployOnPush' in kwargs:
+            deploy_on_push = kwargs['deployOnPush']
+
         if branch is not None:
             _setter("branch", branch)
         if deploy_on_push is not None:
@@ -5389,7 +6313,13 @@ class AppSpecWorkerImage(dict):
              deploy_on_pushes: Optional[Sequence['outputs.AppSpecWorkerImageDeployOnPush']] = None,
              registry: Optional[str] = None,
              tag: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'registryType' in kwargs:
+            registry_type = kwargs['registryType']
+        if 'deployOnPushes' in kwargs:
+            deploy_on_pushes = kwargs['deployOnPushes']
+
         _setter("registry_type", registry_type)
         _setter("repository", repository)
         if deploy_on_pushes is not None:
@@ -5455,7 +6385,9 @@ class AppSpecWorkerImageDeployOnPush(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              enabled: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if enabled is not None:
             _setter("enabled", enabled)
 
@@ -5495,7 +6427,9 @@ class AppSpecWorkerLogDestination(dict):
              datadog: Optional['outputs.AppSpecWorkerLogDestinationDatadog'] = None,
              logtail: Optional['outputs.AppSpecWorkerLogDestinationLogtail'] = None,
              papertrail: Optional['outputs.AppSpecWorkerLogDestinationPapertrail'] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("name", name)
         if datadog is not None:
             _setter("datadog", datadog)
@@ -5573,7 +6507,11 @@ class AppSpecWorkerLogDestinationDatadog(dict):
              _setter: Callable[[Any, Any], None],
              api_key: str,
              endpoint: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'apiKey' in kwargs:
+            api_key = kwargs['apiKey']
+
         _setter("api_key", api_key)
         if endpoint is not None:
             _setter("endpoint", endpoint)
@@ -5612,7 +6550,9 @@ class AppSpecWorkerLogDestinationLogtail(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              token: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("token", token)
 
     @property
@@ -5641,7 +6581,9 @@ class AppSpecWorkerLogDestinationPapertrail(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              endpoint: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("endpoint", endpoint)
 
     @property
@@ -5693,7 +6635,13 @@ class DatabaseClusterBackupRestore(dict):
              _setter: Callable[[Any, Any], None],
              database_name: str,
              backup_created_at: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'databaseName' in kwargs:
+            database_name = kwargs['databaseName']
+        if 'backupCreatedAt' in kwargs:
+            backup_created_at = kwargs['backupCreatedAt']
+
         _setter("database_name", database_name)
         if backup_created_at is not None:
             _setter("backup_created_at", backup_created_at)
@@ -5736,7 +6684,9 @@ class DatabaseClusterMaintenanceWindow(dict):
              _setter: Callable[[Any, Any], None],
              day: str,
              hour: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("day", day)
         _setter("hour", hour)
 
@@ -5801,7 +6751,11 @@ class DatabaseFirewallRule(dict):
              value: str,
              created_at: Optional[str] = None,
              uuid: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'createdAt' in kwargs:
+            created_at = kwargs['createdAt']
+
         _setter("type", type)
         _setter("value", value)
         if created_at is not None:
@@ -5840,6 +6794,465 @@ class DatabaseFirewallRule(dict):
         A unique identifier for the firewall rule.
         """
         return pulumi.get(self, "uuid")
+
+
+@pulumi.output_type
+class DatabaseKafkaTopicConfig(dict):
+    @staticmethod
+    def __key_warning(key: str):
+        suggest = None
+        if key == "cleanupPolicy":
+            suggest = "cleanup_policy"
+        elif key == "compressionType":
+            suggest = "compression_type"
+        elif key == "deleteRetentionMs":
+            suggest = "delete_retention_ms"
+        elif key == "fileDeleteDelayMs":
+            suggest = "file_delete_delay_ms"
+        elif key == "flushMessages":
+            suggest = "flush_messages"
+        elif key == "flushMs":
+            suggest = "flush_ms"
+        elif key == "indexIntervalBytes":
+            suggest = "index_interval_bytes"
+        elif key == "maxCompactionLagMs":
+            suggest = "max_compaction_lag_ms"
+        elif key == "maxMessageBytes":
+            suggest = "max_message_bytes"
+        elif key == "messageDownConversionEnable":
+            suggest = "message_down_conversion_enable"
+        elif key == "messageFormatVersion":
+            suggest = "message_format_version"
+        elif key == "messageTimestampDifferenceMaxMs":
+            suggest = "message_timestamp_difference_max_ms"
+        elif key == "messageTimestampType":
+            suggest = "message_timestamp_type"
+        elif key == "minCleanableDirtyRatio":
+            suggest = "min_cleanable_dirty_ratio"
+        elif key == "minCompactionLagMs":
+            suggest = "min_compaction_lag_ms"
+        elif key == "minInsyncReplicas":
+            suggest = "min_insync_replicas"
+        elif key == "retentionBytes":
+            suggest = "retention_bytes"
+        elif key == "retentionMs":
+            suggest = "retention_ms"
+        elif key == "segmentBytes":
+            suggest = "segment_bytes"
+        elif key == "segmentIndexBytes":
+            suggest = "segment_index_bytes"
+        elif key == "segmentJitterMs":
+            suggest = "segment_jitter_ms"
+        elif key == "segmentMs":
+            suggest = "segment_ms"
+        elif key == "uncleanLeaderElectionEnable":
+            suggest = "unclean_leader_election_enable"
+
+        if suggest:
+            pulumi.log.warn(f"Key '{key}' not found in DatabaseKafkaTopicConfig. Access the value via the '{suggest}' property getter instead.")
+
+    def __getitem__(self, key: str) -> Any:
+        DatabaseKafkaTopicConfig.__key_warning(key)
+        return super().__getitem__(key)
+
+    def get(self, key: str, default = None) -> Any:
+        DatabaseKafkaTopicConfig.__key_warning(key)
+        return super().get(key, default)
+
+    def __init__(__self__, *,
+                 cleanup_policy: Optional[str] = None,
+                 compression_type: Optional[str] = None,
+                 delete_retention_ms: Optional[str] = None,
+                 file_delete_delay_ms: Optional[str] = None,
+                 flush_messages: Optional[str] = None,
+                 flush_ms: Optional[str] = None,
+                 index_interval_bytes: Optional[str] = None,
+                 max_compaction_lag_ms: Optional[str] = None,
+                 max_message_bytes: Optional[str] = None,
+                 message_down_conversion_enable: Optional[bool] = None,
+                 message_format_version: Optional[str] = None,
+                 message_timestamp_difference_max_ms: Optional[str] = None,
+                 message_timestamp_type: Optional[str] = None,
+                 min_cleanable_dirty_ratio: Optional[float] = None,
+                 min_compaction_lag_ms: Optional[str] = None,
+                 min_insync_replicas: Optional[int] = None,
+                 preallocate: Optional[bool] = None,
+                 retention_bytes: Optional[str] = None,
+                 retention_ms: Optional[str] = None,
+                 segment_bytes: Optional[str] = None,
+                 segment_index_bytes: Optional[str] = None,
+                 segment_jitter_ms: Optional[str] = None,
+                 segment_ms: Optional[str] = None,
+                 unclean_leader_election_enable: Optional[bool] = None):
+        """
+        :param str cleanup_policy: The topic cleanup policy that decribes whether messages should be deleted, compacted, or both when retention policies are violated.
+               This may be one of "delete", "compact", or "compact_delete".
+        :param str compression_type: The topic compression codecs used for a given topic.
+               This may be one of "uncompressed", "gzip", "snappy", "lz4", "producer", "zstd". "uncompressed" indicates that there is no compression and "producer" retains the original compression codec set by the producer.
+        :param str delete_retention_ms: The amount of time, in ms, that deleted records are retained.
+        :param str file_delete_delay_ms: The amount of time, in ms, to wait before deleting a topic log segment from the filesystem.
+        :param str flush_messages: The number of messages accumulated on a topic partition before they are flushed to disk.
+        :param str flush_ms: The maximum time, in ms, that a topic is kept in memory before being flushed to disk.
+        :param str index_interval_bytes: The interval, in bytes, in which entries are added to the offset index.
+        :param str max_compaction_lag_ms: The maximum time, in ms, that a particular message will remain uncompacted. This will not apply if the `compression_type` is set to "uncompressed" or it is set to `producer` and the producer is not using compression.
+        :param str max_message_bytes: The maximum size, in bytes, of a message.
+        :param bool message_down_conversion_enable: Determines whether down-conversion of message formats for consumers is enabled.
+        :param str message_format_version: The version of the inter-broker protocol that will be used. This may be one of "0.8.0", "0.8.1", "0.8.2", "0.9.0", "0.10.0", "0.10.0-IV0", "0.10.0-IV1", "0.10.1", "0.10.1-IV0", "0.10.1-IV1", "0.10.1-IV2", "0.10.2", "0.10.2-IV0", "0.11.0", "0.11.0-IV0", "0.11.0-IV1", "0.11.0-IV2", "1.0", "1.0-IV0", "1.1", "1.1-IV0", "2.0", "2.0-IV0", "2.0-IV1", "2.1", "2.1-IV0", "2.1-IV1", "2.1-IV2", "2.2", "2.2-IV0", "2.2-IV1", "2.3", "2.3-IV0", "2.3-IV1", "2.4", "2.4-IV0", "2.4-IV1", "2.5", "2.5-IV0", "2.6", "2.6-IV0", "2.7", "2.7-IV0", "2.7-IV1", "2.7-IV2", "2.8", "2.8-IV0", "2.8-IV1", "3.0", "3.0-IV0", "3.0-IV1", "3.1", "3.1-IV0", "3.2", "3.2-IV0", "3.3", "3.3-IV0", "3.3-IV1", "3.3-IV2", "3.3-IV3", "3.4", "3.4-IV0", "3.5", "3.5-IV0", "3.5-IV1", "3.5-IV2", "3.6", "3.6-IV0", "3.6-IV1", "3.6-IV2".
+        :param str message_timestamp_difference_max_ms: The maximum difference, in ms, between the timestamp specific in a message and when the broker receives the message.
+        :param str message_timestamp_type: Specifies which timestamp to use for the message. This may be one of "create_time" or "log_append_time".
+        :param float min_cleanable_dirty_ratio: A scale between 0.0 and 1.0 which controls the frequency of the compactor. Larger values mean more frequent compactions. This is often paired with `max_compaction_lag_ms` to control the compactor frequency.
+        :param int min_insync_replicas: The number of replicas that must acknowledge a write before it is considered successful. -1 is a special setting to indicate that all nodes must ack a message before a write is considered successful.
+        :param bool preallocate: Determines whether to preallocate a file on disk when creating a new log segment within a topic.
+        :param str retention_bytes: The maximum size, in bytes, of a topic before messages are deleted. -1 is a special setting indicating that this setting has no limit.
+        :param str retention_ms: The maximum time, in ms, that a topic log file is retained before deleting it. -1 is a special setting indicating that this setting has no limit.
+        :param str segment_bytes: The maximum size, in bytes, of a single topic log file.
+        :param str segment_index_bytes: The maximum size, in bytes, of the offset index.
+        :param str segment_jitter_ms: The maximum time, in ms, subtracted from the scheduled segment disk flush time to avoid the thundering herd problem for segment flushing.
+        :param str segment_ms: The maximum time, in ms, before the topic log will flush to disk.
+        :param bool unclean_leader_election_enable: Determines whether to allow nodes that are not part of the in-sync replica set (IRS) to be elected as leader. Note: setting this to "true" could result in data loss.
+        """
+        DatabaseKafkaTopicConfig._configure(
+            lambda key, value: pulumi.set(__self__, key, value),
+            cleanup_policy=cleanup_policy,
+            compression_type=compression_type,
+            delete_retention_ms=delete_retention_ms,
+            file_delete_delay_ms=file_delete_delay_ms,
+            flush_messages=flush_messages,
+            flush_ms=flush_ms,
+            index_interval_bytes=index_interval_bytes,
+            max_compaction_lag_ms=max_compaction_lag_ms,
+            max_message_bytes=max_message_bytes,
+            message_down_conversion_enable=message_down_conversion_enable,
+            message_format_version=message_format_version,
+            message_timestamp_difference_max_ms=message_timestamp_difference_max_ms,
+            message_timestamp_type=message_timestamp_type,
+            min_cleanable_dirty_ratio=min_cleanable_dirty_ratio,
+            min_compaction_lag_ms=min_compaction_lag_ms,
+            min_insync_replicas=min_insync_replicas,
+            preallocate=preallocate,
+            retention_bytes=retention_bytes,
+            retention_ms=retention_ms,
+            segment_bytes=segment_bytes,
+            segment_index_bytes=segment_index_bytes,
+            segment_jitter_ms=segment_jitter_ms,
+            segment_ms=segment_ms,
+            unclean_leader_election_enable=unclean_leader_election_enable,
+        )
+    @staticmethod
+    def _configure(
+             _setter: Callable[[Any, Any], None],
+             cleanup_policy: Optional[str] = None,
+             compression_type: Optional[str] = None,
+             delete_retention_ms: Optional[str] = None,
+             file_delete_delay_ms: Optional[str] = None,
+             flush_messages: Optional[str] = None,
+             flush_ms: Optional[str] = None,
+             index_interval_bytes: Optional[str] = None,
+             max_compaction_lag_ms: Optional[str] = None,
+             max_message_bytes: Optional[str] = None,
+             message_down_conversion_enable: Optional[bool] = None,
+             message_format_version: Optional[str] = None,
+             message_timestamp_difference_max_ms: Optional[str] = None,
+             message_timestamp_type: Optional[str] = None,
+             min_cleanable_dirty_ratio: Optional[float] = None,
+             min_compaction_lag_ms: Optional[str] = None,
+             min_insync_replicas: Optional[int] = None,
+             preallocate: Optional[bool] = None,
+             retention_bytes: Optional[str] = None,
+             retention_ms: Optional[str] = None,
+             segment_bytes: Optional[str] = None,
+             segment_index_bytes: Optional[str] = None,
+             segment_jitter_ms: Optional[str] = None,
+             segment_ms: Optional[str] = None,
+             unclean_leader_election_enable: Optional[bool] = None,
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'cleanupPolicy' in kwargs:
+            cleanup_policy = kwargs['cleanupPolicy']
+        if 'compressionType' in kwargs:
+            compression_type = kwargs['compressionType']
+        if 'deleteRetentionMs' in kwargs:
+            delete_retention_ms = kwargs['deleteRetentionMs']
+        if 'fileDeleteDelayMs' in kwargs:
+            file_delete_delay_ms = kwargs['fileDeleteDelayMs']
+        if 'flushMessages' in kwargs:
+            flush_messages = kwargs['flushMessages']
+        if 'flushMs' in kwargs:
+            flush_ms = kwargs['flushMs']
+        if 'indexIntervalBytes' in kwargs:
+            index_interval_bytes = kwargs['indexIntervalBytes']
+        if 'maxCompactionLagMs' in kwargs:
+            max_compaction_lag_ms = kwargs['maxCompactionLagMs']
+        if 'maxMessageBytes' in kwargs:
+            max_message_bytes = kwargs['maxMessageBytes']
+        if 'messageDownConversionEnable' in kwargs:
+            message_down_conversion_enable = kwargs['messageDownConversionEnable']
+        if 'messageFormatVersion' in kwargs:
+            message_format_version = kwargs['messageFormatVersion']
+        if 'messageTimestampDifferenceMaxMs' in kwargs:
+            message_timestamp_difference_max_ms = kwargs['messageTimestampDifferenceMaxMs']
+        if 'messageTimestampType' in kwargs:
+            message_timestamp_type = kwargs['messageTimestampType']
+        if 'minCleanableDirtyRatio' in kwargs:
+            min_cleanable_dirty_ratio = kwargs['minCleanableDirtyRatio']
+        if 'minCompactionLagMs' in kwargs:
+            min_compaction_lag_ms = kwargs['minCompactionLagMs']
+        if 'minInsyncReplicas' in kwargs:
+            min_insync_replicas = kwargs['minInsyncReplicas']
+        if 'retentionBytes' in kwargs:
+            retention_bytes = kwargs['retentionBytes']
+        if 'retentionMs' in kwargs:
+            retention_ms = kwargs['retentionMs']
+        if 'segmentBytes' in kwargs:
+            segment_bytes = kwargs['segmentBytes']
+        if 'segmentIndexBytes' in kwargs:
+            segment_index_bytes = kwargs['segmentIndexBytes']
+        if 'segmentJitterMs' in kwargs:
+            segment_jitter_ms = kwargs['segmentJitterMs']
+        if 'segmentMs' in kwargs:
+            segment_ms = kwargs['segmentMs']
+        if 'uncleanLeaderElectionEnable' in kwargs:
+            unclean_leader_election_enable = kwargs['uncleanLeaderElectionEnable']
+
+        if cleanup_policy is not None:
+            _setter("cleanup_policy", cleanup_policy)
+        if compression_type is not None:
+            _setter("compression_type", compression_type)
+        if delete_retention_ms is not None:
+            _setter("delete_retention_ms", delete_retention_ms)
+        if file_delete_delay_ms is not None:
+            _setter("file_delete_delay_ms", file_delete_delay_ms)
+        if flush_messages is not None:
+            _setter("flush_messages", flush_messages)
+        if flush_ms is not None:
+            _setter("flush_ms", flush_ms)
+        if index_interval_bytes is not None:
+            _setter("index_interval_bytes", index_interval_bytes)
+        if max_compaction_lag_ms is not None:
+            _setter("max_compaction_lag_ms", max_compaction_lag_ms)
+        if max_message_bytes is not None:
+            _setter("max_message_bytes", max_message_bytes)
+        if message_down_conversion_enable is not None:
+            _setter("message_down_conversion_enable", message_down_conversion_enable)
+        if message_format_version is not None:
+            _setter("message_format_version", message_format_version)
+        if message_timestamp_difference_max_ms is not None:
+            _setter("message_timestamp_difference_max_ms", message_timestamp_difference_max_ms)
+        if message_timestamp_type is not None:
+            _setter("message_timestamp_type", message_timestamp_type)
+        if min_cleanable_dirty_ratio is not None:
+            _setter("min_cleanable_dirty_ratio", min_cleanable_dirty_ratio)
+        if min_compaction_lag_ms is not None:
+            _setter("min_compaction_lag_ms", min_compaction_lag_ms)
+        if min_insync_replicas is not None:
+            _setter("min_insync_replicas", min_insync_replicas)
+        if preallocate is not None:
+            _setter("preallocate", preallocate)
+        if retention_bytes is not None:
+            _setter("retention_bytes", retention_bytes)
+        if retention_ms is not None:
+            _setter("retention_ms", retention_ms)
+        if segment_bytes is not None:
+            _setter("segment_bytes", segment_bytes)
+        if segment_index_bytes is not None:
+            _setter("segment_index_bytes", segment_index_bytes)
+        if segment_jitter_ms is not None:
+            _setter("segment_jitter_ms", segment_jitter_ms)
+        if segment_ms is not None:
+            _setter("segment_ms", segment_ms)
+        if unclean_leader_election_enable is not None:
+            _setter("unclean_leader_election_enable", unclean_leader_election_enable)
+
+    @property
+    @pulumi.getter(name="cleanupPolicy")
+    def cleanup_policy(self) -> Optional[str]:
+        """
+        The topic cleanup policy that decribes whether messages should be deleted, compacted, or both when retention policies are violated.
+        This may be one of "delete", "compact", or "compact_delete".
+        """
+        return pulumi.get(self, "cleanup_policy")
+
+    @property
+    @pulumi.getter(name="compressionType")
+    def compression_type(self) -> Optional[str]:
+        """
+        The topic compression codecs used for a given topic.
+        This may be one of "uncompressed", "gzip", "snappy", "lz4", "producer", "zstd". "uncompressed" indicates that there is no compression and "producer" retains the original compression codec set by the producer.
+        """
+        return pulumi.get(self, "compression_type")
+
+    @property
+    @pulumi.getter(name="deleteRetentionMs")
+    def delete_retention_ms(self) -> Optional[str]:
+        """
+        The amount of time, in ms, that deleted records are retained.
+        """
+        return pulumi.get(self, "delete_retention_ms")
+
+    @property
+    @pulumi.getter(name="fileDeleteDelayMs")
+    def file_delete_delay_ms(self) -> Optional[str]:
+        """
+        The amount of time, in ms, to wait before deleting a topic log segment from the filesystem.
+        """
+        return pulumi.get(self, "file_delete_delay_ms")
+
+    @property
+    @pulumi.getter(name="flushMessages")
+    def flush_messages(self) -> Optional[str]:
+        """
+        The number of messages accumulated on a topic partition before they are flushed to disk.
+        """
+        return pulumi.get(self, "flush_messages")
+
+    @property
+    @pulumi.getter(name="flushMs")
+    def flush_ms(self) -> Optional[str]:
+        """
+        The maximum time, in ms, that a topic is kept in memory before being flushed to disk.
+        """
+        return pulumi.get(self, "flush_ms")
+
+    @property
+    @pulumi.getter(name="indexIntervalBytes")
+    def index_interval_bytes(self) -> Optional[str]:
+        """
+        The interval, in bytes, in which entries are added to the offset index.
+        """
+        return pulumi.get(self, "index_interval_bytes")
+
+    @property
+    @pulumi.getter(name="maxCompactionLagMs")
+    def max_compaction_lag_ms(self) -> Optional[str]:
+        """
+        The maximum time, in ms, that a particular message will remain uncompacted. This will not apply if the `compression_type` is set to "uncompressed" or it is set to `producer` and the producer is not using compression.
+        """
+        return pulumi.get(self, "max_compaction_lag_ms")
+
+    @property
+    @pulumi.getter(name="maxMessageBytes")
+    def max_message_bytes(self) -> Optional[str]:
+        """
+        The maximum size, in bytes, of a message.
+        """
+        return pulumi.get(self, "max_message_bytes")
+
+    @property
+    @pulumi.getter(name="messageDownConversionEnable")
+    def message_down_conversion_enable(self) -> Optional[bool]:
+        """
+        Determines whether down-conversion of message formats for consumers is enabled.
+        """
+        return pulumi.get(self, "message_down_conversion_enable")
+
+    @property
+    @pulumi.getter(name="messageFormatVersion")
+    def message_format_version(self) -> Optional[str]:
+        """
+        The version of the inter-broker protocol that will be used. This may be one of "0.8.0", "0.8.1", "0.8.2", "0.9.0", "0.10.0", "0.10.0-IV0", "0.10.0-IV1", "0.10.1", "0.10.1-IV0", "0.10.1-IV1", "0.10.1-IV2", "0.10.2", "0.10.2-IV0", "0.11.0", "0.11.0-IV0", "0.11.0-IV1", "0.11.0-IV2", "1.0", "1.0-IV0", "1.1", "1.1-IV0", "2.0", "2.0-IV0", "2.0-IV1", "2.1", "2.1-IV0", "2.1-IV1", "2.1-IV2", "2.2", "2.2-IV0", "2.2-IV1", "2.3", "2.3-IV0", "2.3-IV1", "2.4", "2.4-IV0", "2.4-IV1", "2.5", "2.5-IV0", "2.6", "2.6-IV0", "2.7", "2.7-IV0", "2.7-IV1", "2.7-IV2", "2.8", "2.8-IV0", "2.8-IV1", "3.0", "3.0-IV0", "3.0-IV1", "3.1", "3.1-IV0", "3.2", "3.2-IV0", "3.3", "3.3-IV0", "3.3-IV1", "3.3-IV2", "3.3-IV3", "3.4", "3.4-IV0", "3.5", "3.5-IV0", "3.5-IV1", "3.5-IV2", "3.6", "3.6-IV0", "3.6-IV1", "3.6-IV2".
+        """
+        return pulumi.get(self, "message_format_version")
+
+    @property
+    @pulumi.getter(name="messageTimestampDifferenceMaxMs")
+    def message_timestamp_difference_max_ms(self) -> Optional[str]:
+        """
+        The maximum difference, in ms, between the timestamp specific in a message and when the broker receives the message.
+        """
+        return pulumi.get(self, "message_timestamp_difference_max_ms")
+
+    @property
+    @pulumi.getter(name="messageTimestampType")
+    def message_timestamp_type(self) -> Optional[str]:
+        """
+        Specifies which timestamp to use for the message. This may be one of "create_time" or "log_append_time".
+        """
+        return pulumi.get(self, "message_timestamp_type")
+
+    @property
+    @pulumi.getter(name="minCleanableDirtyRatio")
+    def min_cleanable_dirty_ratio(self) -> Optional[float]:
+        """
+        A scale between 0.0 and 1.0 which controls the frequency of the compactor. Larger values mean more frequent compactions. This is often paired with `max_compaction_lag_ms` to control the compactor frequency.
+        """
+        return pulumi.get(self, "min_cleanable_dirty_ratio")
+
+    @property
+    @pulumi.getter(name="minCompactionLagMs")
+    def min_compaction_lag_ms(self) -> Optional[str]:
+        return pulumi.get(self, "min_compaction_lag_ms")
+
+    @property
+    @pulumi.getter(name="minInsyncReplicas")
+    def min_insync_replicas(self) -> Optional[int]:
+        """
+        The number of replicas that must acknowledge a write before it is considered successful. -1 is a special setting to indicate that all nodes must ack a message before a write is considered successful.
+        """
+        return pulumi.get(self, "min_insync_replicas")
+
+    @property
+    @pulumi.getter
+    def preallocate(self) -> Optional[bool]:
+        """
+        Determines whether to preallocate a file on disk when creating a new log segment within a topic.
+        """
+        return pulumi.get(self, "preallocate")
+
+    @property
+    @pulumi.getter(name="retentionBytes")
+    def retention_bytes(self) -> Optional[str]:
+        """
+        The maximum size, in bytes, of a topic before messages are deleted. -1 is a special setting indicating that this setting has no limit.
+        """
+        return pulumi.get(self, "retention_bytes")
+
+    @property
+    @pulumi.getter(name="retentionMs")
+    def retention_ms(self) -> Optional[str]:
+        """
+        The maximum time, in ms, that a topic log file is retained before deleting it. -1 is a special setting indicating that this setting has no limit.
+        """
+        return pulumi.get(self, "retention_ms")
+
+    @property
+    @pulumi.getter(name="segmentBytes")
+    def segment_bytes(self) -> Optional[str]:
+        """
+        The maximum size, in bytes, of a single topic log file.
+        """
+        return pulumi.get(self, "segment_bytes")
+
+    @property
+    @pulumi.getter(name="segmentIndexBytes")
+    def segment_index_bytes(self) -> Optional[str]:
+        """
+        The maximum size, in bytes, of the offset index.
+        """
+        return pulumi.get(self, "segment_index_bytes")
+
+    @property
+    @pulumi.getter(name="segmentJitterMs")
+    def segment_jitter_ms(self) -> Optional[str]:
+        """
+        The maximum time, in ms, subtracted from the scheduled segment disk flush time to avoid the thundering herd problem for segment flushing.
+        """
+        return pulumi.get(self, "segment_jitter_ms")
+
+    @property
+    @pulumi.getter(name="segmentMs")
+    def segment_ms(self) -> Optional[str]:
+        """
+        The maximum time, in ms, before the topic log will flush to disk.
+        """
+        return pulumi.get(self, "segment_ms")
+
+    @property
+    @pulumi.getter(name="uncleanLeaderElectionEnable")
+    def unclean_leader_election_enable(self) -> Optional[bool]:
+        """
+        Determines whether to allow nodes that are not part of the in-sync replica set (IRS) to be elected as leader. Note: setting this to "true" could result in data loss.
+        """
+        return pulumi.get(self, "unclean_leader_election_enable")
 
 
 @pulumi.output_type
@@ -5919,7 +7332,21 @@ class FirewallInboundRule(dict):
              source_kubernetes_ids: Optional[Sequence[str]] = None,
              source_load_balancer_uids: Optional[Sequence[str]] = None,
              source_tags: Optional[Sequence[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'portRange' in kwargs:
+            port_range = kwargs['portRange']
+        if 'sourceAddresses' in kwargs:
+            source_addresses = kwargs['sourceAddresses']
+        if 'sourceDropletIds' in kwargs:
+            source_droplet_ids = kwargs['sourceDropletIds']
+        if 'sourceKubernetesIds' in kwargs:
+            source_kubernetes_ids = kwargs['sourceKubernetesIds']
+        if 'sourceLoadBalancerUids' in kwargs:
+            source_load_balancer_uids = kwargs['sourceLoadBalancerUids']
+        if 'sourceTags' in kwargs:
+            source_tags = kwargs['sourceTags']
+
         _setter("protocol", protocol)
         if port_range is not None:
             _setter("port_range", port_range)
@@ -6079,7 +7506,21 @@ class FirewallOutboundRule(dict):
              destination_load_balancer_uids: Optional[Sequence[str]] = None,
              destination_tags: Optional[Sequence[str]] = None,
              port_range: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'destinationAddresses' in kwargs:
+            destination_addresses = kwargs['destinationAddresses']
+        if 'destinationDropletIds' in kwargs:
+            destination_droplet_ids = kwargs['destinationDropletIds']
+        if 'destinationKubernetesIds' in kwargs:
+            destination_kubernetes_ids = kwargs['destinationKubernetesIds']
+        if 'destinationLoadBalancerUids' in kwargs:
+            destination_load_balancer_uids = kwargs['destinationLoadBalancerUids']
+        if 'destinationTags' in kwargs:
+            destination_tags = kwargs['destinationTags']
+        if 'portRange' in kwargs:
+            port_range = kwargs['portRange']
+
         _setter("protocol", protocol)
         if destination_addresses is not None:
             _setter("destination_addresses", destination_addresses)
@@ -6201,7 +7642,11 @@ class FirewallPendingChange(dict):
              droplet_id: Optional[int] = None,
              removing: Optional[bool] = None,
              status: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'dropletId' in kwargs:
+            droplet_id = kwargs['dropletId']
+
         if droplet_id is not None:
             _setter("droplet_id", droplet_id)
         if removing is not None:
@@ -6293,7 +7738,19 @@ class KubernetesClusterKubeConfig(dict):
              host: Optional[str] = None,
              raw_config: Optional[str] = None,
              token: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'clientCertificate' in kwargs:
+            client_certificate = kwargs['clientCertificate']
+        if 'clientKey' in kwargs:
+            client_key = kwargs['clientKey']
+        if 'clusterCaCertificate' in kwargs:
+            cluster_ca_certificate = kwargs['clusterCaCertificate']
+        if 'expiresAt' in kwargs:
+            expires_at = kwargs['expiresAt']
+        if 'rawConfig' in kwargs:
+            raw_config = kwargs['rawConfig']
+
         if client_certificate is not None:
             _setter("client_certificate", client_certificate)
         if client_key is not None:
@@ -6406,7 +7863,11 @@ class KubernetesClusterMaintenancePolicy(dict):
              day: Optional[str] = None,
              duration: Optional[str] = None,
              start_time: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'startTime' in kwargs:
+            start_time = kwargs['startTime']
+
         if day is not None:
             _setter("day", day)
         if duration is not None:
@@ -6523,7 +7984,19 @@ class KubernetesClusterNodePool(dict):
              nodes: Optional[Sequence['outputs.KubernetesClusterNodePoolNode']] = None,
              tags: Optional[Sequence[str]] = None,
              taints: Optional[Sequence['outputs.KubernetesClusterNodePoolTaint']] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'actualNodeCount' in kwargs:
+            actual_node_count = kwargs['actualNodeCount']
+        if 'autoScale' in kwargs:
+            auto_scale = kwargs['autoScale']
+        if 'maxNodes' in kwargs:
+            max_nodes = kwargs['maxNodes']
+        if 'minNodes' in kwargs:
+            min_nodes = kwargs['minNodes']
+        if 'nodeCount' in kwargs:
+            node_count = kwargs['nodeCount']
+
         _setter("name", name)
         _setter("size", size)
         if actual_node_count is not None:
@@ -6700,7 +8173,15 @@ class KubernetesClusterNodePoolNode(dict):
              name: Optional[str] = None,
              status: Optional[str] = None,
              updated_at: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'createdAt' in kwargs:
+            created_at = kwargs['createdAt']
+        if 'dropletId' in kwargs:
+            droplet_id = kwargs['dropletId']
+        if 'updatedAt' in kwargs:
+            updated_at = kwargs['updatedAt']
+
         if created_at is not None:
             _setter("created_at", created_at)
         if droplet_id is not None:
@@ -6786,7 +8267,9 @@ class KubernetesClusterNodePoolTaint(dict):
              effect: str,
              key: str,
              value: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("effect", effect)
         _setter("key", key)
         _setter("value", value)
@@ -6872,7 +8355,15 @@ class KubernetesNodePoolNode(dict):
              name: Optional[str] = None,
              status: Optional[str] = None,
              updated_at: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'createdAt' in kwargs:
+            created_at = kwargs['createdAt']
+        if 'dropletId' in kwargs:
+            droplet_id = kwargs['dropletId']
+        if 'updatedAt' in kwargs:
+            updated_at = kwargs['updatedAt']
+
         if created_at is not None:
             _setter("created_at", created_at)
         if droplet_id is not None:
@@ -6958,7 +8449,9 @@ class KubernetesNodePoolTaint(dict):
              effect: str,
              key: str,
              value: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("effect", effect)
         _setter("key", key)
         _setter("value", value)
@@ -7008,7 +8501,9 @@ class LoadBalancerFirewall(dict):
              _setter: Callable[[Any, Any], None],
              allows: Optional[Sequence[str]] = None,
              denies: Optional[Sequence[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if allows is not None:
             _setter("allows", allows)
         if denies is not None:
@@ -7100,7 +8595,23 @@ class LoadBalancerForwardingRule(dict):
              certificate_id: Optional[str] = None,
              certificate_name: Optional[str] = None,
              tls_passthrough: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'entryPort' in kwargs:
+            entry_port = kwargs['entryPort']
+        if 'entryProtocol' in kwargs:
+            entry_protocol = kwargs['entryProtocol']
+        if 'targetPort' in kwargs:
+            target_port = kwargs['targetPort']
+        if 'targetProtocol' in kwargs:
+            target_protocol = kwargs['targetProtocol']
+        if 'certificateId' in kwargs:
+            certificate_id = kwargs['certificateId']
+        if 'certificateName' in kwargs:
+            certificate_name = kwargs['certificateName']
+        if 'tlsPassthrough' in kwargs:
+            tls_passthrough = kwargs['tlsPassthrough']
+
         _setter("entry_port", entry_port)
         _setter("entry_protocol", entry_protocol)
         _setter("target_port", target_port)
@@ -7234,7 +8745,17 @@ class LoadBalancerHealthcheck(dict):
              path: Optional[str] = None,
              response_timeout_seconds: Optional[int] = None,
              unhealthy_threshold: Optional[int] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'checkIntervalSeconds' in kwargs:
+            check_interval_seconds = kwargs['checkIntervalSeconds']
+        if 'healthyThreshold' in kwargs:
+            healthy_threshold = kwargs['healthyThreshold']
+        if 'responseTimeoutSeconds' in kwargs:
+            response_timeout_seconds = kwargs['responseTimeoutSeconds']
+        if 'unhealthyThreshold' in kwargs:
+            unhealthy_threshold = kwargs['unhealthyThreshold']
+
         _setter("port", port)
         _setter("protocol", protocol)
         if check_interval_seconds is not None:
@@ -7347,7 +8868,13 @@ class LoadBalancerStickySessions(dict):
              cookie_name: Optional[str] = None,
              cookie_ttl_seconds: Optional[int] = None,
              type: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'cookieName' in kwargs:
+            cookie_name = kwargs['cookieName']
+        if 'cookieTtlSeconds' in kwargs:
+            cookie_ttl_seconds = kwargs['cookieTtlSeconds']
+
         if cookie_name is not None:
             _setter("cookie_name", cookie_name)
         if cookie_ttl_seconds is not None:
@@ -7395,7 +8922,9 @@ class MonitorAlertAlerts(dict):
              _setter: Callable[[Any, Any], None],
              emails: Optional[Sequence[str]] = None,
              slacks: Optional[Sequence['outputs.MonitorAlertAlertsSlack']] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if emails is not None:
             _setter("emails", emails)
         if slacks is not None:
@@ -7427,7 +8956,9 @@ class MonitorAlertAlertsSlack(dict):
              _setter: Callable[[Any, Any], None],
              channel: str,
              url: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("channel", channel)
         _setter("url", url)
 
@@ -7502,7 +9033,19 @@ class SpacesBucketCorsConfigurationCorsRule(dict):
              expose_headers: Optional[Sequence[str]] = None,
              id: Optional[str] = None,
              max_age_seconds: Optional[int] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'allowedMethods' in kwargs:
+            allowed_methods = kwargs['allowedMethods']
+        if 'allowedOrigins' in kwargs:
+            allowed_origins = kwargs['allowedOrigins']
+        if 'allowedHeaders' in kwargs:
+            allowed_headers = kwargs['allowedHeaders']
+        if 'exposeHeaders' in kwargs:
+            expose_headers = kwargs['exposeHeaders']
+        if 'maxAgeSeconds' in kwargs:
+            max_age_seconds = kwargs['maxAgeSeconds']
+
         _setter("allowed_methods", allowed_methods)
         _setter("allowed_origins", allowed_origins)
         if allowed_headers is not None:
@@ -7613,7 +9156,17 @@ class SpacesBucketCorsRule(dict):
              allowed_origins: Sequence[str],
              allowed_headers: Optional[Sequence[str]] = None,
              max_age_seconds: Optional[int] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'allowedMethods' in kwargs:
+            allowed_methods = kwargs['allowedMethods']
+        if 'allowedOrigins' in kwargs:
+            allowed_origins = kwargs['allowedOrigins']
+        if 'allowedHeaders' in kwargs:
+            allowed_headers = kwargs['allowedHeaders']
+        if 'maxAgeSeconds' in kwargs:
+            max_age_seconds = kwargs['maxAgeSeconds']
+
         _setter("allowed_methods", allowed_methods)
         _setter("allowed_origins", allowed_origins)
         if allowed_headers is not None:
@@ -7711,7 +9264,13 @@ class SpacesBucketLifecycleRule(dict):
              id: Optional[str] = None,
              noncurrent_version_expiration: Optional['outputs.SpacesBucketLifecycleRuleNoncurrentVersionExpiration'] = None,
              prefix: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'abortIncompleteMultipartUploadDays' in kwargs:
+            abort_incomplete_multipart_upload_days = kwargs['abortIncompleteMultipartUploadDays']
+        if 'noncurrentVersionExpiration' in kwargs:
+            noncurrent_version_expiration = kwargs['noncurrentVersionExpiration']
+
         _setter("enabled", enabled)
         if abort_incomplete_multipart_upload_days is not None:
             _setter("abort_incomplete_multipart_upload_days", abort_incomplete_multipart_upload_days)
@@ -7818,7 +9377,11 @@ class SpacesBucketLifecycleRuleExpiration(dict):
              date: Optional[str] = None,
              days: Optional[int] = None,
              expired_object_delete_marker: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'expiredObjectDeleteMarker' in kwargs:
+            expired_object_delete_marker = kwargs['expiredObjectDeleteMarker']
+
         if date is not None:
             _setter("date", date)
         if days is not None:
@@ -7868,7 +9431,9 @@ class SpacesBucketLifecycleRuleNoncurrentVersionExpiration(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              days: Optional[int] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if days is not None:
             _setter("days", days)
 
@@ -7897,7 +9462,9 @@ class SpacesBucketVersioning(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              enabled: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if enabled is not None:
             _setter("enabled", enabled)
 
@@ -7929,7 +9496,9 @@ class UptimeAlertNotification(dict):
              _setter: Callable[[Any, Any], None],
              emails: Optional[Sequence[str]] = None,
              slacks: Optional[Sequence['outputs.UptimeAlertNotificationSlack']] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if emails is not None:
             _setter("emails", emails)
         if slacks is not None:
@@ -7968,7 +9537,9 @@ class UptimeAlertNotificationSlack(dict):
              _setter: Callable[[Any, Any], None],
              channel: str,
              url: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("channel", channel)
         _setter("url", url)
 
@@ -7994,6 +9565,7 @@ class GetAppSpecResult(dict):
     def __init__(__self__, *,
                  domain: Sequence['outputs.GetAppSpecDomainResult'],
                  domains: Sequence[str],
+                 ingress: 'outputs.GetAppSpecIngressResult',
                  name: str,
                  alerts: Optional[Sequence['outputs.GetAppSpecAlertResult']] = None,
                  databases: Optional[Sequence['outputs.GetAppSpecDatabaseResult']] = None,
@@ -8013,6 +9585,7 @@ class GetAppSpecResult(dict):
             lambda key, value: pulumi.set(__self__, key, value),
             domain=domain,
             domains=domains,
+            ingress=ingress,
             name=name,
             alerts=alerts,
             databases=databases,
@@ -8029,6 +9602,7 @@ class GetAppSpecResult(dict):
              _setter: Callable[[Any, Any], None],
              domain: Sequence['outputs.GetAppSpecDomainResult'],
              domains: Sequence[str],
+             ingress: 'outputs.GetAppSpecIngressResult',
              name: str,
              alerts: Optional[Sequence['outputs.GetAppSpecAlertResult']] = None,
              databases: Optional[Sequence['outputs.GetAppSpecDatabaseResult']] = None,
@@ -8039,9 +9613,14 @@ class GetAppSpecResult(dict):
              services: Optional[Sequence['outputs.GetAppSpecServiceResult']] = None,
              static_sites: Optional[Sequence['outputs.GetAppSpecStaticSiteResult']] = None,
              workers: Optional[Sequence['outputs.GetAppSpecWorkerResult']] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'staticSites' in kwargs:
+            static_sites = kwargs['staticSites']
+
         _setter("domain", domain)
         _setter("domains", domains)
+        _setter("ingress", ingress)
         _setter("name", name)
         if alerts is not None:
             _setter("alerts", alerts)
@@ -8074,6 +9653,11 @@ class GetAppSpecResult(dict):
         pulumi.log.warn("""domains is deprecated: This attribute has been replaced by `domain` which supports additional functionality.""")
 
         return pulumi.get(self, "domains")
+
+    @property
+    @pulumi.getter
+    def ingress(self) -> 'outputs.GetAppSpecIngressResult':
+        return pulumi.get(self, "ingress")
 
     @property
     @pulumi.getter
@@ -8154,7 +9738,9 @@ class GetAppSpecAlertResult(dict):
              _setter: Callable[[Any, Any], None],
              rule: str,
              disabled: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("rule", rule)
         if disabled is not None:
             _setter("disabled", disabled)
@@ -8215,7 +9801,15 @@ class GetAppSpecDatabaseResult(dict):
              name: Optional[str] = None,
              production: Optional[bool] = None,
              version: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'clusterName' in kwargs:
+            cluster_name = kwargs['clusterName']
+        if 'dbName' in kwargs:
+            db_name = kwargs['dbName']
+        if 'dbUser' in kwargs:
+            db_user = kwargs['dbUser']
+
         if cluster_name is not None:
             _setter("cluster_name", cluster_name)
         if db_name is not None:
@@ -8313,7 +9907,9 @@ class GetAppSpecDomainResult(dict):
              type: str,
              wildcard: bool,
              zone: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("name", name)
         _setter("type", type)
         _setter("wildcard", wildcard)
@@ -8374,7 +9970,9 @@ class GetAppSpecEnvResult(dict):
              key: Optional[str] = None,
              scope: Optional[str] = None,
              value: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("type", type)
         if key is not None:
             _setter("key", key)
@@ -8466,7 +10064,13 @@ class GetAppSpecFunctionResult(dict):
              gitlab: Optional['outputs.GetAppSpecFunctionGitlabResult'] = None,
              log_destinations: Optional[Sequence['outputs.GetAppSpecFunctionLogDestinationResult']] = None,
              source_dir: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'logDestinations' in kwargs:
+            log_destinations = kwargs['logDestinations']
+        if 'sourceDir' in kwargs:
+            source_dir = kwargs['sourceDir']
+
         _setter("name", name)
         _setter("routes", routes)
         if alerts is not None:
@@ -8497,6 +10101,9 @@ class GetAppSpecFunctionResult(dict):
     @property
     @pulumi.getter
     def routes(self) -> Sequence['outputs.GetAppSpecFunctionRouteResult']:
+        warnings.warn("""Service level routes are deprecated in favor of ingresses""", DeprecationWarning)
+        pulumi.log.warn("""routes is deprecated: Service level routes are deprecated in favor of ingresses""")
+
         return pulumi.get(self, "routes")
 
     @property
@@ -8513,6 +10120,9 @@ class GetAppSpecFunctionResult(dict):
         """
         The [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) policies of the app.
         """
+        warnings.warn("""Service level CORS rules are deprecated in favor of ingresses""", DeprecationWarning)
+        pulumi.log.warn("""cors is deprecated: Service level CORS rules are deprecated in favor of ingresses""")
+
         return pulumi.get(self, "cors")
 
     @property
@@ -8595,7 +10205,9 @@ class GetAppSpecFunctionAlertResult(dict):
              value: float,
              window: str,
              disabled: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("operator", operator)
         _setter("rule", rule)
         _setter("value", value)
@@ -8679,7 +10291,21 @@ class GetAppSpecFunctionCorsResult(dict):
              allow_origins: Optional['outputs.GetAppSpecFunctionCorsAllowOriginsResult'] = None,
              expose_headers: Optional[Sequence[str]] = None,
              max_age: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'allowCredentials' in kwargs:
+            allow_credentials = kwargs['allowCredentials']
+        if 'allowHeaders' in kwargs:
+            allow_headers = kwargs['allowHeaders']
+        if 'allowMethods' in kwargs:
+            allow_methods = kwargs['allowMethods']
+        if 'allowOrigins' in kwargs:
+            allow_origins = kwargs['allowOrigins']
+        if 'exposeHeaders' in kwargs:
+            expose_headers = kwargs['exposeHeaders']
+        if 'maxAge' in kwargs:
+            max_age = kwargs['maxAge']
+
         if allow_credentials is not None:
             _setter("allow_credentials", allow_credentials)
         if allow_headers is not None:
@@ -8765,7 +10391,9 @@ class GetAppSpecFunctionCorsAllowOriginsResult(dict):
              exact: Optional[str] = None,
              prefix: Optional[str] = None,
              regex: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if exact is not None:
             _setter("exact", exact)
         if prefix is not None:
@@ -8825,7 +10453,9 @@ class GetAppSpecFunctionEnvResult(dict):
              key: Optional[str] = None,
              scope: Optional[str] = None,
              value: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("type", type)
         if key is not None:
             _setter("key", key)
@@ -8886,7 +10516,11 @@ class GetAppSpecFunctionGitResult(dict):
              _setter: Callable[[Any, Any], None],
              branch: Optional[str] = None,
              repo_clone_url: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'repoCloneUrl' in kwargs:
+            repo_clone_url = kwargs['repoCloneUrl']
+
         if branch is not None:
             _setter("branch", branch)
         if repo_clone_url is not None:
@@ -8932,7 +10566,11 @@ class GetAppSpecFunctionGithubResult(dict):
              branch: Optional[str] = None,
              deploy_on_push: Optional[bool] = None,
              repo: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'deployOnPush' in kwargs:
+            deploy_on_push = kwargs['deployOnPush']
+
         if branch is not None:
             _setter("branch", branch)
         if deploy_on_push is not None:
@@ -8988,7 +10626,11 @@ class GetAppSpecFunctionGitlabResult(dict):
              branch: Optional[str] = None,
              deploy_on_push: Optional[bool] = None,
              repo: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'deployOnPush' in kwargs:
+            deploy_on_push = kwargs['deployOnPush']
+
         if branch is not None:
             _setter("branch", branch)
         if deploy_on_push is not None:
@@ -9048,7 +10690,9 @@ class GetAppSpecFunctionLogDestinationResult(dict):
              datadog: Optional['outputs.GetAppSpecFunctionLogDestinationDatadogResult'] = None,
              logtail: Optional['outputs.GetAppSpecFunctionLogDestinationLogtailResult'] = None,
              papertrail: Optional['outputs.GetAppSpecFunctionLogDestinationPapertrailResult'] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("name", name)
         if datadog is not None:
             _setter("datadog", datadog)
@@ -9109,7 +10753,11 @@ class GetAppSpecFunctionLogDestinationDatadogResult(dict):
              _setter: Callable[[Any, Any], None],
              api_key: str,
              endpoint: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'apiKey' in kwargs:
+            api_key = kwargs['apiKey']
+
         _setter("api_key", api_key)
         if endpoint is not None:
             _setter("endpoint", endpoint)
@@ -9146,7 +10794,9 @@ class GetAppSpecFunctionLogDestinationLogtailResult(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              token: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("token", token)
 
     @property
@@ -9173,7 +10823,9 @@ class GetAppSpecFunctionLogDestinationPapertrailResult(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              endpoint: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("endpoint", endpoint)
 
     @property
@@ -9204,7 +10856,11 @@ class GetAppSpecFunctionRouteResult(dict):
              _setter: Callable[[Any, Any], None],
              path: Optional[str] = None,
              preserve_path_prefix: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'preservePathPrefix' in kwargs:
+            preserve_path_prefix = kwargs['preservePathPrefix']
+
         if path is not None:
             _setter("path", path)
         if preserve_path_prefix is not None:
@@ -9225,6 +10881,439 @@ class GetAppSpecFunctionRouteResult(dict):
         An optional flag to preserve the path that is forwarded to the backend service.
         """
         return pulumi.get(self, "preserve_path_prefix")
+
+
+@pulumi.output_type
+class GetAppSpecIngressResult(dict):
+    def __init__(__self__, *,
+                 rules: Sequence['outputs.GetAppSpecIngressRuleResult']):
+        """
+        :param Sequence['GetAppSpecIngressRuleArgs'] rules: The type of the alert to configure. Component app alert policies can be: `CPU_UTILIZATION`, `MEM_UTILIZATION`, or `RESTART_COUNT`.
+        """
+        GetAppSpecIngressResult._configure(
+            lambda key, value: pulumi.set(__self__, key, value),
+            rules=rules,
+        )
+    @staticmethod
+    def _configure(
+             _setter: Callable[[Any, Any], None],
+             rules: Sequence['outputs.GetAppSpecIngressRuleResult'],
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
+        _setter("rules", rules)
+
+    @property
+    @pulumi.getter
+    def rules(self) -> Sequence['outputs.GetAppSpecIngressRuleResult']:
+        """
+        The type of the alert to configure. Component app alert policies can be: `CPU_UTILIZATION`, `MEM_UTILIZATION`, or `RESTART_COUNT`.
+        """
+        return pulumi.get(self, "rules")
+
+
+@pulumi.output_type
+class GetAppSpecIngressRuleResult(dict):
+    def __init__(__self__, *,
+                 component: 'outputs.GetAppSpecIngressRuleComponentResult',
+                 cors: 'outputs.GetAppSpecIngressRuleCorsResult',
+                 match: 'outputs.GetAppSpecIngressRuleMatchResult',
+                 redirect: Optional['outputs.GetAppSpecIngressRuleRedirectResult'] = None):
+        """
+        :param 'GetAppSpecIngressRuleCorsArgs' cors: The [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) policies of the app.
+        """
+        GetAppSpecIngressRuleResult._configure(
+            lambda key, value: pulumi.set(__self__, key, value),
+            component=component,
+            cors=cors,
+            match=match,
+            redirect=redirect,
+        )
+    @staticmethod
+    def _configure(
+             _setter: Callable[[Any, Any], None],
+             component: 'outputs.GetAppSpecIngressRuleComponentResult',
+             cors: 'outputs.GetAppSpecIngressRuleCorsResult',
+             match: 'outputs.GetAppSpecIngressRuleMatchResult',
+             redirect: Optional['outputs.GetAppSpecIngressRuleRedirectResult'] = None,
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
+        _setter("component", component)
+        _setter("cors", cors)
+        _setter("match", match)
+        if redirect is not None:
+            _setter("redirect", redirect)
+
+    @property
+    @pulumi.getter
+    def component(self) -> 'outputs.GetAppSpecIngressRuleComponentResult':
+        return pulumi.get(self, "component")
+
+    @property
+    @pulumi.getter
+    def cors(self) -> 'outputs.GetAppSpecIngressRuleCorsResult':
+        """
+        The [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) policies of the app.
+        """
+        return pulumi.get(self, "cors")
+
+    @property
+    @pulumi.getter
+    def match(self) -> 'outputs.GetAppSpecIngressRuleMatchResult':
+        return pulumi.get(self, "match")
+
+    @property
+    @pulumi.getter
+    def redirect(self) -> Optional['outputs.GetAppSpecIngressRuleRedirectResult']:
+        return pulumi.get(self, "redirect")
+
+
+@pulumi.output_type
+class GetAppSpecIngressRuleComponentResult(dict):
+    def __init__(__self__, *,
+                 name: str,
+                 preserve_path_prefix: bool,
+                 rewrite: str):
+        """
+        :param str name: The name of the component.
+        :param bool preserve_path_prefix: An optional flag to preserve the path that is forwarded to the backend service.
+        """
+        GetAppSpecIngressRuleComponentResult._configure(
+            lambda key, value: pulumi.set(__self__, key, value),
+            name=name,
+            preserve_path_prefix=preserve_path_prefix,
+            rewrite=rewrite,
+        )
+    @staticmethod
+    def _configure(
+             _setter: Callable[[Any, Any], None],
+             name: str,
+             preserve_path_prefix: bool,
+             rewrite: str,
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'preservePathPrefix' in kwargs:
+            preserve_path_prefix = kwargs['preservePathPrefix']
+
+        _setter("name", name)
+        _setter("preserve_path_prefix", preserve_path_prefix)
+        _setter("rewrite", rewrite)
+
+    @property
+    @pulumi.getter
+    def name(self) -> str:
+        """
+        The name of the component.
+        """
+        return pulumi.get(self, "name")
+
+    @property
+    @pulumi.getter(name="preservePathPrefix")
+    def preserve_path_prefix(self) -> bool:
+        """
+        An optional flag to preserve the path that is forwarded to the backend service.
+        """
+        return pulumi.get(self, "preserve_path_prefix")
+
+    @property
+    @pulumi.getter
+    def rewrite(self) -> str:
+        return pulumi.get(self, "rewrite")
+
+
+@pulumi.output_type
+class GetAppSpecIngressRuleCorsResult(dict):
+    def __init__(__self__, *,
+                 allow_credentials: Optional[bool] = None,
+                 allow_headers: Optional[Sequence[str]] = None,
+                 allow_methods: Optional[Sequence[str]] = None,
+                 allow_origins: Optional['outputs.GetAppSpecIngressRuleCorsAllowOriginsResult'] = None,
+                 expose_headers: Optional[Sequence[str]] = None,
+                 max_age: Optional[str] = None):
+        """
+        :param bool allow_credentials: Whether browsers should expose the response to the client-side JavaScript code when the request's credentials mode is `include`. This configures the `Access-Control-Allow-Credentials` header.
+        :param Sequence[str] allow_headers: The set of allowed HTTP request headers. This configures the `Access-Control-Allow-Headers` header.
+        :param Sequence[str] allow_methods: The set of allowed HTTP methods. This configures the `Access-Control-Allow-Methods` header.
+        :param 'GetAppSpecIngressRuleCorsAllowOriginsArgs' allow_origins: The `Access-Control-Allow-Origin` can be
+        :param Sequence[str] expose_headers: The set of HTTP response headers that browsers are allowed to access. This configures the `Access-Control-Expose-Headers` header.
+        :param str max_age: An optional duration specifying how long browsers can cache the results of a preflight request. This configures the Access-Control-Max-Age header. Example: `5h30m`.
+        """
+        GetAppSpecIngressRuleCorsResult._configure(
+            lambda key, value: pulumi.set(__self__, key, value),
+            allow_credentials=allow_credentials,
+            allow_headers=allow_headers,
+            allow_methods=allow_methods,
+            allow_origins=allow_origins,
+            expose_headers=expose_headers,
+            max_age=max_age,
+        )
+    @staticmethod
+    def _configure(
+             _setter: Callable[[Any, Any], None],
+             allow_credentials: Optional[bool] = None,
+             allow_headers: Optional[Sequence[str]] = None,
+             allow_methods: Optional[Sequence[str]] = None,
+             allow_origins: Optional['outputs.GetAppSpecIngressRuleCorsAllowOriginsResult'] = None,
+             expose_headers: Optional[Sequence[str]] = None,
+             max_age: Optional[str] = None,
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'allowCredentials' in kwargs:
+            allow_credentials = kwargs['allowCredentials']
+        if 'allowHeaders' in kwargs:
+            allow_headers = kwargs['allowHeaders']
+        if 'allowMethods' in kwargs:
+            allow_methods = kwargs['allowMethods']
+        if 'allowOrigins' in kwargs:
+            allow_origins = kwargs['allowOrigins']
+        if 'exposeHeaders' in kwargs:
+            expose_headers = kwargs['exposeHeaders']
+        if 'maxAge' in kwargs:
+            max_age = kwargs['maxAge']
+
+        if allow_credentials is not None:
+            _setter("allow_credentials", allow_credentials)
+        if allow_headers is not None:
+            _setter("allow_headers", allow_headers)
+        if allow_methods is not None:
+            _setter("allow_methods", allow_methods)
+        if allow_origins is not None:
+            _setter("allow_origins", allow_origins)
+        if expose_headers is not None:
+            _setter("expose_headers", expose_headers)
+        if max_age is not None:
+            _setter("max_age", max_age)
+
+    @property
+    @pulumi.getter(name="allowCredentials")
+    def allow_credentials(self) -> Optional[bool]:
+        """
+        Whether browsers should expose the response to the client-side JavaScript code when the request's credentials mode is `include`. This configures the `Access-Control-Allow-Credentials` header.
+        """
+        return pulumi.get(self, "allow_credentials")
+
+    @property
+    @pulumi.getter(name="allowHeaders")
+    def allow_headers(self) -> Optional[Sequence[str]]:
+        """
+        The set of allowed HTTP request headers. This configures the `Access-Control-Allow-Headers` header.
+        """
+        return pulumi.get(self, "allow_headers")
+
+    @property
+    @pulumi.getter(name="allowMethods")
+    def allow_methods(self) -> Optional[Sequence[str]]:
+        """
+        The set of allowed HTTP methods. This configures the `Access-Control-Allow-Methods` header.
+        """
+        return pulumi.get(self, "allow_methods")
+
+    @property
+    @pulumi.getter(name="allowOrigins")
+    def allow_origins(self) -> Optional['outputs.GetAppSpecIngressRuleCorsAllowOriginsResult']:
+        """
+        The `Access-Control-Allow-Origin` can be
+        """
+        return pulumi.get(self, "allow_origins")
+
+    @property
+    @pulumi.getter(name="exposeHeaders")
+    def expose_headers(self) -> Optional[Sequence[str]]:
+        """
+        The set of HTTP response headers that browsers are allowed to access. This configures the `Access-Control-Expose-Headers` header.
+        """
+        return pulumi.get(self, "expose_headers")
+
+    @property
+    @pulumi.getter(name="maxAge")
+    def max_age(self) -> Optional[str]:
+        """
+        An optional duration specifying how long browsers can cache the results of a preflight request. This configures the Access-Control-Max-Age header. Example: `5h30m`.
+        """
+        return pulumi.get(self, "max_age")
+
+
+@pulumi.output_type
+class GetAppSpecIngressRuleCorsAllowOriginsResult(dict):
+    def __init__(__self__, *,
+                 exact: Optional[str] = None,
+                 prefix: Optional[str] = None,
+                 regex: Optional[str] = None):
+        """
+        :param str exact: The `Access-Control-Allow-Origin` header will be set to the client's origin only if the client's origin exactly matches the value you provide.
+        :param str prefix: The `Access-Control-Allow-Origin` header will be set to the client's origin if the beginning of the client's origin matches the value you provide.
+        :param str regex: The `Access-Control-Allow-Origin` header will be set to the client's origin if the client’s origin matches the regex you provide, in [RE2 style syntax](https://github.com/google/re2/wiki/Syntax).
+        """
+        GetAppSpecIngressRuleCorsAllowOriginsResult._configure(
+            lambda key, value: pulumi.set(__self__, key, value),
+            exact=exact,
+            prefix=prefix,
+            regex=regex,
+        )
+    @staticmethod
+    def _configure(
+             _setter: Callable[[Any, Any], None],
+             exact: Optional[str] = None,
+             prefix: Optional[str] = None,
+             regex: Optional[str] = None,
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
+        if exact is not None:
+            _setter("exact", exact)
+        if prefix is not None:
+            _setter("prefix", prefix)
+        if regex is not None:
+            _setter("regex", regex)
+
+    @property
+    @pulumi.getter
+    def exact(self) -> Optional[str]:
+        """
+        The `Access-Control-Allow-Origin` header will be set to the client's origin only if the client's origin exactly matches the value you provide.
+        """
+        return pulumi.get(self, "exact")
+
+    @property
+    @pulumi.getter
+    def prefix(self) -> Optional[str]:
+        """
+        The `Access-Control-Allow-Origin` header will be set to the client's origin if the beginning of the client's origin matches the value you provide.
+        """
+        return pulumi.get(self, "prefix")
+
+    @property
+    @pulumi.getter
+    def regex(self) -> Optional[str]:
+        """
+        The `Access-Control-Allow-Origin` header will be set to the client's origin if the client’s origin matches the regex you provide, in [RE2 style syntax](https://github.com/google/re2/wiki/Syntax).
+        """
+        return pulumi.get(self, "regex")
+
+
+@pulumi.output_type
+class GetAppSpecIngressRuleMatchResult(dict):
+    def __init__(__self__, *,
+                 path: 'outputs.GetAppSpecIngressRuleMatchPathResult'):
+        """
+        :param 'GetAppSpecIngressRuleMatchPathArgs' path: Paths must start with `/` and must be unique within the app.
+        """
+        GetAppSpecIngressRuleMatchResult._configure(
+            lambda key, value: pulumi.set(__self__, key, value),
+            path=path,
+        )
+    @staticmethod
+    def _configure(
+             _setter: Callable[[Any, Any], None],
+             path: 'outputs.GetAppSpecIngressRuleMatchPathResult',
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
+        _setter("path", path)
+
+    @property
+    @pulumi.getter
+    def path(self) -> 'outputs.GetAppSpecIngressRuleMatchPathResult':
+        """
+        Paths must start with `/` and must be unique within the app.
+        """
+        return pulumi.get(self, "path")
+
+
+@pulumi.output_type
+class GetAppSpecIngressRuleMatchPathResult(dict):
+    def __init__(__self__, *,
+                 prefix: str):
+        """
+        :param str prefix: The `Access-Control-Allow-Origin` header will be set to the client's origin if the beginning of the client's origin matches the value you provide.
+        """
+        GetAppSpecIngressRuleMatchPathResult._configure(
+            lambda key, value: pulumi.set(__self__, key, value),
+            prefix=prefix,
+        )
+    @staticmethod
+    def _configure(
+             _setter: Callable[[Any, Any], None],
+             prefix: str,
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
+        _setter("prefix", prefix)
+
+    @property
+    @pulumi.getter
+    def prefix(self) -> str:
+        """
+        The `Access-Control-Allow-Origin` header will be set to the client's origin if the beginning of the client's origin matches the value you provide.
+        """
+        return pulumi.get(self, "prefix")
+
+
+@pulumi.output_type
+class GetAppSpecIngressRuleRedirectResult(dict):
+    def __init__(__self__, *,
+                 authority: Optional[str] = None,
+                 port: Optional[int] = None,
+                 redirect_code: Optional[int] = None,
+                 scheme: Optional[str] = None,
+                 uri: Optional[str] = None):
+        GetAppSpecIngressRuleRedirectResult._configure(
+            lambda key, value: pulumi.set(__self__, key, value),
+            authority=authority,
+            port=port,
+            redirect_code=redirect_code,
+            scheme=scheme,
+            uri=uri,
+        )
+    @staticmethod
+    def _configure(
+             _setter: Callable[[Any, Any], None],
+             authority: Optional[str] = None,
+             port: Optional[int] = None,
+             redirect_code: Optional[int] = None,
+             scheme: Optional[str] = None,
+             uri: Optional[str] = None,
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'redirectCode' in kwargs:
+            redirect_code = kwargs['redirectCode']
+
+        if authority is not None:
+            _setter("authority", authority)
+        if port is not None:
+            _setter("port", port)
+        if redirect_code is not None:
+            _setter("redirect_code", redirect_code)
+        if scheme is not None:
+            _setter("scheme", scheme)
+        if uri is not None:
+            _setter("uri", uri)
+
+    @property
+    @pulumi.getter
+    def authority(self) -> Optional[str]:
+        return pulumi.get(self, "authority")
+
+    @property
+    @pulumi.getter
+    def port(self) -> Optional[int]:
+        return pulumi.get(self, "port")
+
+    @property
+    @pulumi.getter(name="redirectCode")
+    def redirect_code(self) -> Optional[int]:
+        return pulumi.get(self, "redirect_code")
+
+    @property
+    @pulumi.getter
+    def scheme(self) -> Optional[str]:
+        return pulumi.get(self, "scheme")
+
+    @property
+    @pulumi.getter
+    def uri(self) -> Optional[str]:
+        return pulumi.get(self, "uri")
 
 
 @pulumi.output_type
@@ -9302,7 +11391,25 @@ class GetAppSpecJobResult(dict):
              log_destinations: Optional[Sequence['outputs.GetAppSpecJobLogDestinationResult']] = None,
              run_command: Optional[str] = None,
              source_dir: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'buildCommand' in kwargs:
+            build_command = kwargs['buildCommand']
+        if 'dockerfilePath' in kwargs:
+            dockerfile_path = kwargs['dockerfilePath']
+        if 'environmentSlug' in kwargs:
+            environment_slug = kwargs['environmentSlug']
+        if 'instanceCount' in kwargs:
+            instance_count = kwargs['instanceCount']
+        if 'instanceSizeSlug' in kwargs:
+            instance_size_slug = kwargs['instanceSizeSlug']
+        if 'logDestinations' in kwargs:
+            log_destinations = kwargs['logDestinations']
+        if 'runCommand' in kwargs:
+            run_command = kwargs['runCommand']
+        if 'sourceDir' in kwargs:
+            source_dir = kwargs['sourceDir']
+
         _setter("name", name)
         if alerts is not None:
             _setter("alerts", alerts)
@@ -9495,7 +11602,9 @@ class GetAppSpecJobAlertResult(dict):
              value: float,
              window: str,
              disabled: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("operator", operator)
         _setter("rule", rule)
         _setter("value", value)
@@ -9571,7 +11680,9 @@ class GetAppSpecJobEnvResult(dict):
              key: Optional[str] = None,
              scope: Optional[str] = None,
              value: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("type", type)
         if key is not None:
             _setter("key", key)
@@ -9632,7 +11743,11 @@ class GetAppSpecJobGitResult(dict):
              _setter: Callable[[Any, Any], None],
              branch: Optional[str] = None,
              repo_clone_url: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'repoCloneUrl' in kwargs:
+            repo_clone_url = kwargs['repoCloneUrl']
+
         if branch is not None:
             _setter("branch", branch)
         if repo_clone_url is not None:
@@ -9678,7 +11793,11 @@ class GetAppSpecJobGithubResult(dict):
              branch: Optional[str] = None,
              deploy_on_push: Optional[bool] = None,
              repo: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'deployOnPush' in kwargs:
+            deploy_on_push = kwargs['deployOnPush']
+
         if branch is not None:
             _setter("branch", branch)
         if deploy_on_push is not None:
@@ -9734,7 +11853,11 @@ class GetAppSpecJobGitlabResult(dict):
              branch: Optional[str] = None,
              deploy_on_push: Optional[bool] = None,
              repo: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'deployOnPush' in kwargs:
+            deploy_on_push = kwargs['deployOnPush']
+
         if branch is not None:
             _setter("branch", branch)
         if deploy_on_push is not None:
@@ -9798,7 +11921,13 @@ class GetAppSpecJobImageResult(dict):
              repository: str,
              registry: Optional[str] = None,
              tag: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'deployOnPushes' in kwargs:
+            deploy_on_pushes = kwargs['deployOnPushes']
+        if 'registryType' in kwargs:
+            registry_type = kwargs['registryType']
+
         _setter("deploy_on_pushes", deploy_on_pushes)
         _setter("registry_type", registry_type)
         _setter("repository", repository)
@@ -9863,7 +11992,9 @@ class GetAppSpecJobImageDeployOnPushResult(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              enabled: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if enabled is not None:
             _setter("enabled", enabled)
 
@@ -9903,7 +12034,9 @@ class GetAppSpecJobLogDestinationResult(dict):
              datadog: Optional['outputs.GetAppSpecJobLogDestinationDatadogResult'] = None,
              logtail: Optional['outputs.GetAppSpecJobLogDestinationLogtailResult'] = None,
              papertrail: Optional['outputs.GetAppSpecJobLogDestinationPapertrailResult'] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("name", name)
         if datadog is not None:
             _setter("datadog", datadog)
@@ -9964,7 +12097,11 @@ class GetAppSpecJobLogDestinationDatadogResult(dict):
              _setter: Callable[[Any, Any], None],
              api_key: str,
              endpoint: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'apiKey' in kwargs:
+            api_key = kwargs['apiKey']
+
         _setter("api_key", api_key)
         if endpoint is not None:
             _setter("endpoint", endpoint)
@@ -10001,7 +12138,9 @@ class GetAppSpecJobLogDestinationLogtailResult(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              token: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("token", token)
 
     @property
@@ -10028,7 +12167,9 @@ class GetAppSpecJobLogDestinationPapertrailResult(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              endpoint: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("endpoint", endpoint)
 
     @property
@@ -10130,7 +12271,31 @@ class GetAppSpecServiceResult(dict):
              internal_ports: Optional[Sequence[int]] = None,
              log_destinations: Optional[Sequence['outputs.GetAppSpecServiceLogDestinationResult']] = None,
              source_dir: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'httpPort' in kwargs:
+            http_port = kwargs['httpPort']
+        if 'runCommand' in kwargs:
+            run_command = kwargs['runCommand']
+        if 'buildCommand' in kwargs:
+            build_command = kwargs['buildCommand']
+        if 'dockerfilePath' in kwargs:
+            dockerfile_path = kwargs['dockerfilePath']
+        if 'environmentSlug' in kwargs:
+            environment_slug = kwargs['environmentSlug']
+        if 'healthCheck' in kwargs:
+            health_check = kwargs['healthCheck']
+        if 'instanceCount' in kwargs:
+            instance_count = kwargs['instanceCount']
+        if 'instanceSizeSlug' in kwargs:
+            instance_size_slug = kwargs['instanceSizeSlug']
+        if 'internalPorts' in kwargs:
+            internal_ports = kwargs['internalPorts']
+        if 'logDestinations' in kwargs:
+            log_destinations = kwargs['logDestinations']
+        if 'sourceDir' in kwargs:
+            source_dir = kwargs['sourceDir']
+
         _setter("http_port", http_port)
         _setter("name", name)
         _setter("routes", routes)
@@ -10187,6 +12352,9 @@ class GetAppSpecServiceResult(dict):
     @property
     @pulumi.getter
     def routes(self) -> Sequence['outputs.GetAppSpecServiceRouteResult']:
+        warnings.warn("""Service level routes are deprecated in favor of ingresses""", DeprecationWarning)
+        pulumi.log.warn("""routes is deprecated: Service level routes are deprecated in favor of ingresses""")
+
         return pulumi.get(self, "routes")
 
     @property
@@ -10219,6 +12387,9 @@ class GetAppSpecServiceResult(dict):
         """
         The [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) policies of the app.
         """
+        warnings.warn("""Service level CORS rules are deprecated in favor of ingresses""", DeprecationWarning)
+        pulumi.log.warn("""cors is deprecated: Service level CORS rules are deprecated in favor of ingresses""")
+
         return pulumi.get(self, "cors")
 
     @property
@@ -10357,7 +12528,9 @@ class GetAppSpecServiceAlertResult(dict):
              value: float,
              window: str,
              disabled: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("operator", operator)
         _setter("rule", rule)
         _setter("value", value)
@@ -10441,7 +12614,21 @@ class GetAppSpecServiceCorsResult(dict):
              allow_origins: Optional['outputs.GetAppSpecServiceCorsAllowOriginsResult'] = None,
              expose_headers: Optional[Sequence[str]] = None,
              max_age: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'allowCredentials' in kwargs:
+            allow_credentials = kwargs['allowCredentials']
+        if 'allowHeaders' in kwargs:
+            allow_headers = kwargs['allowHeaders']
+        if 'allowMethods' in kwargs:
+            allow_methods = kwargs['allowMethods']
+        if 'allowOrigins' in kwargs:
+            allow_origins = kwargs['allowOrigins']
+        if 'exposeHeaders' in kwargs:
+            expose_headers = kwargs['exposeHeaders']
+        if 'maxAge' in kwargs:
+            max_age = kwargs['maxAge']
+
         if allow_credentials is not None:
             _setter("allow_credentials", allow_credentials)
         if allow_headers is not None:
@@ -10527,7 +12714,9 @@ class GetAppSpecServiceCorsAllowOriginsResult(dict):
              exact: Optional[str] = None,
              prefix: Optional[str] = None,
              regex: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if exact is not None:
             _setter("exact", exact)
         if prefix is not None:
@@ -10587,7 +12776,9 @@ class GetAppSpecServiceEnvResult(dict):
              key: Optional[str] = None,
              scope: Optional[str] = None,
              value: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("type", type)
         if key is not None:
             _setter("key", key)
@@ -10648,7 +12839,11 @@ class GetAppSpecServiceGitResult(dict):
              _setter: Callable[[Any, Any], None],
              branch: Optional[str] = None,
              repo_clone_url: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'repoCloneUrl' in kwargs:
+            repo_clone_url = kwargs['repoCloneUrl']
+
         if branch is not None:
             _setter("branch", branch)
         if repo_clone_url is not None:
@@ -10694,7 +12889,11 @@ class GetAppSpecServiceGithubResult(dict):
              branch: Optional[str] = None,
              deploy_on_push: Optional[bool] = None,
              repo: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'deployOnPush' in kwargs:
+            deploy_on_push = kwargs['deployOnPush']
+
         if branch is not None:
             _setter("branch", branch)
         if deploy_on_push is not None:
@@ -10750,7 +12949,11 @@ class GetAppSpecServiceGitlabResult(dict):
              branch: Optional[str] = None,
              deploy_on_push: Optional[bool] = None,
              repo: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'deployOnPush' in kwargs:
+            deploy_on_push = kwargs['deployOnPush']
+
         if branch is not None:
             _setter("branch", branch)
         if deploy_on_push is not None:
@@ -10818,7 +13021,21 @@ class GetAppSpecServiceHealthCheckResult(dict):
              period_seconds: Optional[int] = None,
              success_threshold: Optional[int] = None,
              timeout_seconds: Optional[int] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'failureThreshold' in kwargs:
+            failure_threshold = kwargs['failureThreshold']
+        if 'httpPath' in kwargs:
+            http_path = kwargs['httpPath']
+        if 'initialDelaySeconds' in kwargs:
+            initial_delay_seconds = kwargs['initialDelaySeconds']
+        if 'periodSeconds' in kwargs:
+            period_seconds = kwargs['periodSeconds']
+        if 'successThreshold' in kwargs:
+            success_threshold = kwargs['successThreshold']
+        if 'timeoutSeconds' in kwargs:
+            timeout_seconds = kwargs['timeoutSeconds']
+
         if failure_threshold is not None:
             _setter("failure_threshold", failure_threshold)
         if http_path is not None:
@@ -10912,7 +13129,13 @@ class GetAppSpecServiceImageResult(dict):
              repository: str,
              registry: Optional[str] = None,
              tag: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'deployOnPushes' in kwargs:
+            deploy_on_pushes = kwargs['deployOnPushes']
+        if 'registryType' in kwargs:
+            registry_type = kwargs['registryType']
+
         _setter("deploy_on_pushes", deploy_on_pushes)
         _setter("registry_type", registry_type)
         _setter("repository", repository)
@@ -10977,7 +13200,9 @@ class GetAppSpecServiceImageDeployOnPushResult(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              enabled: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if enabled is not None:
             _setter("enabled", enabled)
 
@@ -11017,7 +13242,9 @@ class GetAppSpecServiceLogDestinationResult(dict):
              datadog: Optional['outputs.GetAppSpecServiceLogDestinationDatadogResult'] = None,
              logtail: Optional['outputs.GetAppSpecServiceLogDestinationLogtailResult'] = None,
              papertrail: Optional['outputs.GetAppSpecServiceLogDestinationPapertrailResult'] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("name", name)
         if datadog is not None:
             _setter("datadog", datadog)
@@ -11078,7 +13305,11 @@ class GetAppSpecServiceLogDestinationDatadogResult(dict):
              _setter: Callable[[Any, Any], None],
              api_key: str,
              endpoint: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'apiKey' in kwargs:
+            api_key = kwargs['apiKey']
+
         _setter("api_key", api_key)
         if endpoint is not None:
             _setter("endpoint", endpoint)
@@ -11115,7 +13346,9 @@ class GetAppSpecServiceLogDestinationLogtailResult(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              token: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("token", token)
 
     @property
@@ -11142,7 +13375,9 @@ class GetAppSpecServiceLogDestinationPapertrailResult(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              endpoint: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("endpoint", endpoint)
 
     @property
@@ -11173,7 +13408,11 @@ class GetAppSpecServiceRouteResult(dict):
              _setter: Callable[[Any, Any], None],
              path: Optional[str] = None,
              preserve_path_prefix: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'preservePathPrefix' in kwargs:
+            preserve_path_prefix = kwargs['preservePathPrefix']
+
         if path is not None:
             _setter("path", path)
         if preserve_path_prefix is not None:
@@ -11266,7 +13505,25 @@ class GetAppSpecStaticSiteResult(dict):
              index_document: Optional[str] = None,
              output_dir: Optional[str] = None,
              source_dir: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'buildCommand' in kwargs:
+            build_command = kwargs['buildCommand']
+        if 'catchallDocument' in kwargs:
+            catchall_document = kwargs['catchallDocument']
+        if 'dockerfilePath' in kwargs:
+            dockerfile_path = kwargs['dockerfilePath']
+        if 'environmentSlug' in kwargs:
+            environment_slug = kwargs['environmentSlug']
+        if 'errorDocument' in kwargs:
+            error_document = kwargs['errorDocument']
+        if 'indexDocument' in kwargs:
+            index_document = kwargs['indexDocument']
+        if 'outputDir' in kwargs:
+            output_dir = kwargs['outputDir']
+        if 'sourceDir' in kwargs:
+            source_dir = kwargs['sourceDir']
+
         _setter("name", name)
         _setter("routes", routes)
         if build_command is not None:
@@ -11307,6 +13564,9 @@ class GetAppSpecStaticSiteResult(dict):
     @property
     @pulumi.getter
     def routes(self) -> Sequence['outputs.GetAppSpecStaticSiteRouteResult']:
+        warnings.warn("""Service level routes are deprecated in favor of ingresses""", DeprecationWarning)
+        pulumi.log.warn("""routes is deprecated: Service level routes are deprecated in favor of ingresses""")
+
         return pulumi.get(self, "routes")
 
     @property
@@ -11331,6 +13591,9 @@ class GetAppSpecStaticSiteResult(dict):
         """
         The [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) policies of the app.
         """
+        warnings.warn("""Service level CORS rules are deprecated in favor of ingresses""", DeprecationWarning)
+        pulumi.log.warn("""cors is deprecated: Service level CORS rules are deprecated in favor of ingresses""")
+
         return pulumi.get(self, "cors")
 
     @property
@@ -11449,7 +13712,21 @@ class GetAppSpecStaticSiteCorsResult(dict):
              allow_origins: Optional['outputs.GetAppSpecStaticSiteCorsAllowOriginsResult'] = None,
              expose_headers: Optional[Sequence[str]] = None,
              max_age: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'allowCredentials' in kwargs:
+            allow_credentials = kwargs['allowCredentials']
+        if 'allowHeaders' in kwargs:
+            allow_headers = kwargs['allowHeaders']
+        if 'allowMethods' in kwargs:
+            allow_methods = kwargs['allowMethods']
+        if 'allowOrigins' in kwargs:
+            allow_origins = kwargs['allowOrigins']
+        if 'exposeHeaders' in kwargs:
+            expose_headers = kwargs['exposeHeaders']
+        if 'maxAge' in kwargs:
+            max_age = kwargs['maxAge']
+
         if allow_credentials is not None:
             _setter("allow_credentials", allow_credentials)
         if allow_headers is not None:
@@ -11535,7 +13812,9 @@ class GetAppSpecStaticSiteCorsAllowOriginsResult(dict):
              exact: Optional[str] = None,
              prefix: Optional[str] = None,
              regex: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if exact is not None:
             _setter("exact", exact)
         if prefix is not None:
@@ -11595,7 +13874,9 @@ class GetAppSpecStaticSiteEnvResult(dict):
              key: Optional[str] = None,
              scope: Optional[str] = None,
              value: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("type", type)
         if key is not None:
             _setter("key", key)
@@ -11656,7 +13937,11 @@ class GetAppSpecStaticSiteGitResult(dict):
              _setter: Callable[[Any, Any], None],
              branch: Optional[str] = None,
              repo_clone_url: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'repoCloneUrl' in kwargs:
+            repo_clone_url = kwargs['repoCloneUrl']
+
         if branch is not None:
             _setter("branch", branch)
         if repo_clone_url is not None:
@@ -11702,7 +13987,11 @@ class GetAppSpecStaticSiteGithubResult(dict):
              branch: Optional[str] = None,
              deploy_on_push: Optional[bool] = None,
              repo: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'deployOnPush' in kwargs:
+            deploy_on_push = kwargs['deployOnPush']
+
         if branch is not None:
             _setter("branch", branch)
         if deploy_on_push is not None:
@@ -11758,7 +14047,11 @@ class GetAppSpecStaticSiteGitlabResult(dict):
              branch: Optional[str] = None,
              deploy_on_push: Optional[bool] = None,
              repo: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'deployOnPush' in kwargs:
+            deploy_on_push = kwargs['deployOnPush']
+
         if branch is not None:
             _setter("branch", branch)
         if deploy_on_push is not None:
@@ -11810,7 +14103,11 @@ class GetAppSpecStaticSiteRouteResult(dict):
              _setter: Callable[[Any, Any], None],
              path: Optional[str] = None,
              preserve_path_prefix: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'preservePathPrefix' in kwargs:
+            preserve_path_prefix = kwargs['preservePathPrefix']
+
         if path is not None:
             _setter("path", path)
         if preserve_path_prefix is not None:
@@ -11904,7 +14201,25 @@ class GetAppSpecWorkerResult(dict):
              log_destinations: Optional[Sequence['outputs.GetAppSpecWorkerLogDestinationResult']] = None,
              run_command: Optional[str] = None,
              source_dir: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'buildCommand' in kwargs:
+            build_command = kwargs['buildCommand']
+        if 'dockerfilePath' in kwargs:
+            dockerfile_path = kwargs['dockerfilePath']
+        if 'environmentSlug' in kwargs:
+            environment_slug = kwargs['environmentSlug']
+        if 'instanceCount' in kwargs:
+            instance_count = kwargs['instanceCount']
+        if 'instanceSizeSlug' in kwargs:
+            instance_size_slug = kwargs['instanceSizeSlug']
+        if 'logDestinations' in kwargs:
+            log_destinations = kwargs['logDestinations']
+        if 'runCommand' in kwargs:
+            run_command = kwargs['runCommand']
+        if 'sourceDir' in kwargs:
+            source_dir = kwargs['sourceDir']
+
         _setter("name", name)
         if alerts is not None:
             _setter("alerts", alerts)
@@ -12087,7 +14402,9 @@ class GetAppSpecWorkerAlertResult(dict):
              value: float,
              window: str,
              disabled: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("operator", operator)
         _setter("rule", rule)
         _setter("value", value)
@@ -12163,7 +14480,9 @@ class GetAppSpecWorkerEnvResult(dict):
              key: Optional[str] = None,
              scope: Optional[str] = None,
              value: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("type", type)
         if key is not None:
             _setter("key", key)
@@ -12224,7 +14543,11 @@ class GetAppSpecWorkerGitResult(dict):
              _setter: Callable[[Any, Any], None],
              branch: Optional[str] = None,
              repo_clone_url: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'repoCloneUrl' in kwargs:
+            repo_clone_url = kwargs['repoCloneUrl']
+
         if branch is not None:
             _setter("branch", branch)
         if repo_clone_url is not None:
@@ -12270,7 +14593,11 @@ class GetAppSpecWorkerGithubResult(dict):
              branch: Optional[str] = None,
              deploy_on_push: Optional[bool] = None,
              repo: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'deployOnPush' in kwargs:
+            deploy_on_push = kwargs['deployOnPush']
+
         if branch is not None:
             _setter("branch", branch)
         if deploy_on_push is not None:
@@ -12326,7 +14653,11 @@ class GetAppSpecWorkerGitlabResult(dict):
              branch: Optional[str] = None,
              deploy_on_push: Optional[bool] = None,
              repo: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'deployOnPush' in kwargs:
+            deploy_on_push = kwargs['deployOnPush']
+
         if branch is not None:
             _setter("branch", branch)
         if deploy_on_push is not None:
@@ -12390,7 +14721,13 @@ class GetAppSpecWorkerImageResult(dict):
              repository: str,
              registry: Optional[str] = None,
              tag: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'deployOnPushes' in kwargs:
+            deploy_on_pushes = kwargs['deployOnPushes']
+        if 'registryType' in kwargs:
+            registry_type = kwargs['registryType']
+
         _setter("deploy_on_pushes", deploy_on_pushes)
         _setter("registry_type", registry_type)
         _setter("repository", repository)
@@ -12455,7 +14792,9 @@ class GetAppSpecWorkerImageDeployOnPushResult(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              enabled: Optional[bool] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if enabled is not None:
             _setter("enabled", enabled)
 
@@ -12495,7 +14834,9 @@ class GetAppSpecWorkerLogDestinationResult(dict):
              datadog: Optional['outputs.GetAppSpecWorkerLogDestinationDatadogResult'] = None,
              logtail: Optional['outputs.GetAppSpecWorkerLogDestinationLogtailResult'] = None,
              papertrail: Optional['outputs.GetAppSpecWorkerLogDestinationPapertrailResult'] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("name", name)
         if datadog is not None:
             _setter("datadog", datadog)
@@ -12556,7 +14897,11 @@ class GetAppSpecWorkerLogDestinationDatadogResult(dict):
              _setter: Callable[[Any, Any], None],
              api_key: str,
              endpoint: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'apiKey' in kwargs:
+            api_key = kwargs['apiKey']
+
         _setter("api_key", api_key)
         if endpoint is not None:
             _setter("endpoint", endpoint)
@@ -12593,7 +14938,9 @@ class GetAppSpecWorkerLogDestinationLogtailResult(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              token: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("token", token)
 
     @property
@@ -12620,7 +14967,9 @@ class GetAppSpecWorkerLogDestinationPapertrailResult(dict):
     def _configure(
              _setter: Callable[[Any, Any], None],
              endpoint: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("endpoint", endpoint)
 
     @property
@@ -12651,7 +15000,9 @@ class GetDatabaseClusterMaintenanceWindowResult(dict):
              _setter: Callable[[Any, Any], None],
              day: str,
              hour: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("day", day)
         _setter("hour", hour)
 
@@ -12695,7 +15046,9 @@ class GetDomainsDomainResult(dict):
              name: str,
              ttl: int,
              urn: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("name", name)
         _setter("ttl", ttl)
         _setter("urn", urn)
@@ -12757,7 +15110,11 @@ class GetDomainsFilterResult(dict):
              values: Sequence[str],
              all: Optional[bool] = None,
              match_by: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'matchBy' in kwargs:
+            match_by = kwargs['matchBy']
+
         _setter("key", key)
         _setter("values", values)
         if all is not None:
@@ -12822,7 +15179,9 @@ class GetDomainsSortResult(dict):
              _setter: Callable[[Any, Any], None],
              key: str,
              direction: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("key", key)
         if direction is not None:
             _setter("direction", direction)
@@ -12953,7 +15312,29 @@ class GetDropletsDropletResult(dict):
              vcpus: int,
              volume_ids: Sequence[str],
              vpc_uuid: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'createdAt' in kwargs:
+            created_at = kwargs['createdAt']
+        if 'ipv4Address' in kwargs:
+            ipv4_address = kwargs['ipv4Address']
+        if 'ipv4AddressPrivate' in kwargs:
+            ipv4_address_private = kwargs['ipv4AddressPrivate']
+        if 'ipv6Address' in kwargs:
+            ipv6_address = kwargs['ipv6Address']
+        if 'ipv6AddressPrivate' in kwargs:
+            ipv6_address_private = kwargs['ipv6AddressPrivate']
+        if 'priceHourly' in kwargs:
+            price_hourly = kwargs['priceHourly']
+        if 'priceMonthly' in kwargs:
+            price_monthly = kwargs['priceMonthly']
+        if 'privateNetworking' in kwargs:
+            private_networking = kwargs['privateNetworking']
+        if 'volumeIds' in kwargs:
+            volume_ids = kwargs['volumeIds']
+        if 'vpcUuid' in kwargs:
+            vpc_uuid = kwargs['vpcUuid']
+
         _setter("backups", backups)
         _setter("created_at", created_at)
         _setter("disk", disk)
@@ -13210,7 +15591,11 @@ class GetDropletsFilterResult(dict):
              values: Sequence[str],
              all: Optional[bool] = None,
              match_by: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'matchBy' in kwargs:
+            match_by = kwargs['matchBy']
+
         _setter("key", key)
         _setter("values", values)
         if all is not None:
@@ -13281,7 +15666,9 @@ class GetDropletsSortResult(dict):
              _setter: Callable[[Any, Any], None],
              key: str,
              direction: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("key", key)
         if direction is not None:
             _setter("direction", direction)
@@ -13353,7 +15740,21 @@ class GetFirewallInboundRuleResult(dict):
              source_kubernetes_ids: Optional[Sequence[str]] = None,
              source_load_balancer_uids: Optional[Sequence[str]] = None,
              source_tags: Optional[Sequence[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'portRange' in kwargs:
+            port_range = kwargs['portRange']
+        if 'sourceAddresses' in kwargs:
+            source_addresses = kwargs['sourceAddresses']
+        if 'sourceDropletIds' in kwargs:
+            source_droplet_ids = kwargs['sourceDropletIds']
+        if 'sourceKubernetesIds' in kwargs:
+            source_kubernetes_ids = kwargs['sourceKubernetesIds']
+        if 'sourceLoadBalancerUids' in kwargs:
+            source_load_balancer_uids = kwargs['sourceLoadBalancerUids']
+        if 'sourceTags' in kwargs:
+            source_tags = kwargs['sourceTags']
+
         _setter("protocol", protocol)
         if port_range is not None:
             _setter("port_range", port_range)
@@ -13480,7 +15881,21 @@ class GetFirewallOutboundRuleResult(dict):
              destination_load_balancer_uids: Optional[Sequence[str]] = None,
              destination_tags: Optional[Sequence[str]] = None,
              port_range: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'destinationAddresses' in kwargs:
+            destination_addresses = kwargs['destinationAddresses']
+        if 'destinationDropletIds' in kwargs:
+            destination_droplet_ids = kwargs['destinationDropletIds']
+        if 'destinationKubernetesIds' in kwargs:
+            destination_kubernetes_ids = kwargs['destinationKubernetesIds']
+        if 'destinationLoadBalancerUids' in kwargs:
+            destination_load_balancer_uids = kwargs['destinationLoadBalancerUids']
+        if 'destinationTags' in kwargs:
+            destination_tags = kwargs['destinationTags']
+        if 'portRange' in kwargs:
+            port_range = kwargs['portRange']
+
         _setter("protocol", protocol)
         if destination_addresses is not None:
             _setter("destination_addresses", destination_addresses)
@@ -13582,7 +15997,11 @@ class GetFirewallPendingChangeResult(dict):
              droplet_id: Optional[int] = None,
              removing: Optional[bool] = None,
              status: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'dropletId' in kwargs:
+            droplet_id = kwargs['dropletId']
+
         if droplet_id is not None:
             _setter("droplet_id", droplet_id)
         if removing is not None:
@@ -13644,7 +16063,11 @@ class GetImagesFilterResult(dict):
              values: Sequence[str],
              all: Optional[bool] = None,
              match_by: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'matchBy' in kwargs:
+            match_by = kwargs['matchBy']
+
         _setter("key", key)
         _setter("values", values)
         if all is not None:
@@ -13764,7 +16187,15 @@ class GetImagesImageResult(dict):
              status: str,
              tags: Sequence[str],
              type: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'errorMessage' in kwargs:
+            error_message = kwargs['errorMessage']
+        if 'minDiskSize' in kwargs:
+            min_disk_size = kwargs['minDiskSize']
+        if 'sizeGigabytes' in kwargs:
+            size_gigabytes = kwargs['sizeGigabytes']
+
         _setter("created", created)
         _setter("description", description)
         _setter("distribution", distribution)
@@ -13921,7 +16352,9 @@ class GetImagesSortResult(dict):
              _setter: Callable[[Any, Any], None],
              key: str,
              direction: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("key", key)
         if direction is not None:
             _setter("direction", direction)
@@ -13983,7 +16416,19 @@ class GetKubernetesClusterKubeConfigResult(dict):
              host: str,
              raw_config: str,
              token: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'clientCertificate' in kwargs:
+            client_certificate = kwargs['clientCertificate']
+        if 'clientKey' in kwargs:
+            client_key = kwargs['clientKey']
+        if 'clusterCaCertificate' in kwargs:
+            cluster_ca_certificate = kwargs['clusterCaCertificate']
+        if 'expiresAt' in kwargs:
+            expires_at = kwargs['expiresAt']
+        if 'rawConfig' in kwargs:
+            raw_config = kwargs['rawConfig']
+
         _setter("client_certificate", client_certificate)
         _setter("client_key", client_key)
         _setter("cluster_ca_certificate", cluster_ca_certificate)
@@ -14072,7 +16517,11 @@ class GetKubernetesClusterMaintenancePolicyResult(dict):
              day: str,
              duration: str,
              start_time: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'startTime' in kwargs:
+            start_time = kwargs['startTime']
+
         _setter("day", day)
         _setter("duration", duration)
         _setter("start_time", start_time)
@@ -14161,7 +16610,19 @@ class GetKubernetesClusterNodePoolResult(dict):
              size: str,
              tags: Sequence[str],
              taints: Sequence['outputs.GetKubernetesClusterNodePoolTaintResult'],
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'actualNodeCount' in kwargs:
+            actual_node_count = kwargs['actualNodeCount']
+        if 'autoScale' in kwargs:
+            auto_scale = kwargs['autoScale']
+        if 'maxNodes' in kwargs:
+            max_nodes = kwargs['maxNodes']
+        if 'minNodes' in kwargs:
+            min_nodes = kwargs['minNodes']
+        if 'nodeCount' in kwargs:
+            node_count = kwargs['nodeCount']
+
         _setter("actual_node_count", actual_node_count)
         _setter("auto_scale", auto_scale)
         _setter("id", id)
@@ -14306,7 +16767,15 @@ class GetKubernetesClusterNodePoolNodeResult(dict):
              name: str,
              status: str,
              updated_at: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'createdAt' in kwargs:
+            created_at = kwargs['createdAt']
+        if 'dropletId' in kwargs:
+            droplet_id = kwargs['dropletId']
+        if 'updatedAt' in kwargs:
+            updated_at = kwargs['updatedAt']
+
         _setter("created_at", created_at)
         _setter("droplet_id", droplet_id)
         _setter("id", id)
@@ -14383,7 +16852,9 @@ class GetKubernetesClusterNodePoolTaintResult(dict):
              effect: str,
              key: str,
              value: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("effect", effect)
         _setter("key", key)
         _setter("value", value)
@@ -14428,7 +16899,9 @@ class GetLoadBalancerFirewallResult(dict):
              _setter: Callable[[Any, Any], None],
              allows: Sequence[str],
              denies: Sequence[str],
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("allows", allows)
         _setter("denies", denies)
 
@@ -14473,7 +16946,23 @@ class GetLoadBalancerForwardingRuleResult(dict):
              target_port: int,
              target_protocol: str,
              tls_passthrough: bool,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'certificateId' in kwargs:
+            certificate_id = kwargs['certificateId']
+        if 'certificateName' in kwargs:
+            certificate_name = kwargs['certificateName']
+        if 'entryPort' in kwargs:
+            entry_port = kwargs['entryPort']
+        if 'entryProtocol' in kwargs:
+            entry_protocol = kwargs['entryProtocol']
+        if 'targetPort' in kwargs:
+            target_port = kwargs['targetPort']
+        if 'targetProtocol' in kwargs:
+            target_protocol = kwargs['targetProtocol']
+        if 'tlsPassthrough' in kwargs:
+            tls_passthrough = kwargs['tlsPassthrough']
+
         _setter("certificate_id", certificate_id)
         _setter("certificate_name", certificate_name)
         _setter("entry_port", entry_port)
@@ -14548,7 +17037,17 @@ class GetLoadBalancerHealthcheckResult(dict):
              protocol: str,
              response_timeout_seconds: int,
              unhealthy_threshold: int,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'checkIntervalSeconds' in kwargs:
+            check_interval_seconds = kwargs['checkIntervalSeconds']
+        if 'healthyThreshold' in kwargs:
+            healthy_threshold = kwargs['healthyThreshold']
+        if 'responseTimeoutSeconds' in kwargs:
+            response_timeout_seconds = kwargs['responseTimeoutSeconds']
+        if 'unhealthyThreshold' in kwargs:
+            unhealthy_threshold = kwargs['unhealthyThreshold']
+
         _setter("check_interval_seconds", check_interval_seconds)
         _setter("healthy_threshold", healthy_threshold)
         _setter("path", path)
@@ -14611,7 +17110,13 @@ class GetLoadBalancerStickySessionResult(dict):
              cookie_name: str,
              cookie_ttl_seconds: int,
              type: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'cookieName' in kwargs:
+            cookie_name = kwargs['cookieName']
+        if 'cookieTtlSeconds' in kwargs:
+            cookie_ttl_seconds = kwargs['cookieTtlSeconds']
+
         _setter("cookie_name", cookie_name)
         _setter("cookie_ttl_seconds", cookie_ttl_seconds)
         _setter("type", type)
@@ -14665,7 +17170,11 @@ class GetProjectsFilterResult(dict):
              values: Sequence[str],
              all: Optional[bool] = None,
              match_by: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'matchBy' in kwargs:
+            match_by = kwargs['matchBy']
+
         _setter("key", key)
         _setter("values", values)
         if all is not None:
@@ -14766,7 +17275,19 @@ class GetProjectsProjectResult(dict):
              purpose: str,
              resources: Sequence[str],
              updated_at: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'createdAt' in kwargs:
+            created_at = kwargs['createdAt']
+        if 'isDefault' in kwargs:
+            is_default = kwargs['isDefault']
+        if 'ownerId' in kwargs:
+            owner_id = kwargs['ownerId']
+        if 'ownerUuid' in kwargs:
+            owner_uuid = kwargs['ownerUuid']
+        if 'updatedAt' in kwargs:
+            updated_at = kwargs['updatedAt']
+
         _setter("created_at", created_at)
         _setter("description", description)
         _setter("environment", environment)
@@ -14885,7 +17406,9 @@ class GetProjectsSortResult(dict):
              _setter: Callable[[Any, Any], None],
              key: str,
              direction: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("key", key)
         if direction is not None:
             _setter("direction", direction)
@@ -14941,7 +17464,11 @@ class GetRecordsFilterResult(dict):
              values: Sequence[str],
              all: Optional[bool] = None,
              match_by: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'matchBy' in kwargs:
+            match_by = kwargs['matchBy']
+
         _setter("key", key)
         _setter("values", values)
         if all is not None:
@@ -15043,7 +17570,9 @@ class GetRecordsRecordResult(dict):
              type: str,
              value: str,
              weight: int,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("domain", domain)
         _setter("flags", flags)
         _setter("id", id)
@@ -15165,7 +17694,9 @@ class GetRecordsSortResult(dict):
              _setter: Callable[[Any, Any], None],
              key: str,
              direction: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("key", key)
         if direction is not None:
             _setter("direction", direction)
@@ -15221,7 +17752,11 @@ class GetRegionsFilterResult(dict):
              values: Sequence[str],
              all: Optional[bool] = None,
              match_by: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'matchBy' in kwargs:
+            match_by = kwargs['matchBy']
+
         _setter("key", key)
         _setter("values", values)
         if all is not None:
@@ -15299,7 +17834,9 @@ class GetRegionsRegionResult(dict):
              name: str,
              sizes: Sequence[str],
              slug: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("available", available)
         _setter("features", features)
         _setter("name", name)
@@ -15367,7 +17904,9 @@ class GetRegionsSortResult(dict):
              _setter: Callable[[Any, Any], None],
              key: str,
              direction: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("key", key)
         if direction is not None:
             _setter("direction", direction)
@@ -15424,7 +17963,11 @@ class GetSizesFilterResult(dict):
              values: Sequence[str],
              all: Optional[bool] = None,
              match_by: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'matchBy' in kwargs:
+            match_by = kwargs['matchBy']
+
         _setter("key", key)
         _setter("values", values)
         if all is not None:
@@ -15519,7 +18062,13 @@ class GetSizesSizeResult(dict):
              slug: str,
              transfer: float,
              vcpus: int,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'priceHourly' in kwargs:
+            price_hourly = kwargs['priceHourly']
+        if 'priceMonthly' in kwargs:
+            price_monthly = kwargs['priceMonthly']
+
         _setter("available", available)
         _setter("disk", disk)
         _setter("memory", memory)
@@ -15623,7 +18172,9 @@ class GetSizesSortResult(dict):
              _setter: Callable[[Any, Any], None],
              key: str,
              direction: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("key", key)
         if direction is not None:
             _setter("direction", direction)
@@ -15677,7 +18228,11 @@ class GetSpacesBucketsBucketResult(dict):
              name: str,
              region: str,
              urn: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'bucketDomainName' in kwargs:
+            bucket_domain_name = kwargs['bucketDomainName']
+
         _setter("bucket_domain_name", bucket_domain_name)
         _setter("endpoint", endpoint)
         _setter("name", name)
@@ -15757,7 +18312,11 @@ class GetSpacesBucketsFilterResult(dict):
              values: Sequence[str],
              all: Optional[bool] = None,
              match_by: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'matchBy' in kwargs:
+            match_by = kwargs['matchBy']
+
         _setter("key", key)
         _setter("values", values)
         if all is not None:
@@ -15822,7 +18381,9 @@ class GetSpacesBucketsSortResult(dict):
              _setter: Callable[[Any, Any], None],
              key: str,
              direction: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("key", key)
         if direction is not None:
             _setter("direction", direction)
@@ -15869,7 +18430,11 @@ class GetSshKeysFilterResult(dict):
              values: Sequence[str],
              all: Optional[bool] = None,
              match_by: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'matchBy' in kwargs:
+            match_by = kwargs['matchBy']
+
         _setter("key", key)
         _setter("values", values)
         if all is not None:
@@ -15923,7 +18488,9 @@ class GetSshKeysSortResult(dict):
              _setter: Callable[[Any, Any], None],
              key: str,
              direction: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("key", key)
         if direction is not None:
             _setter("direction", direction)
@@ -15972,7 +18539,11 @@ class GetSshKeysSshKeyResult(dict):
              id: int,
              name: str,
              public_key: str,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'publicKey' in kwargs:
+            public_key = kwargs['publicKey']
+
         _setter("fingerprint", fingerprint)
         _setter("id", id)
         _setter("name", name)
@@ -16043,7 +18614,11 @@ class GetTagsFilterResult(dict):
              values: Sequence[str],
              all: Optional[bool] = None,
              match_by: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'matchBy' in kwargs:
+            match_by = kwargs['matchBy']
+
         _setter("key", key)
         _setter("values", values)
         if all is not None:
@@ -16108,7 +18683,9 @@ class GetTagsSortResult(dict):
              _setter: Callable[[Any, Any], None],
              key: str,
              direction: Optional[str] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("key", key)
         if direction is not None:
             _setter("direction", direction)
@@ -16169,7 +18746,21 @@ class GetTagsTagResult(dict):
              total_resource_count: int,
              volume_snapshots_count: int,
              volumes_count: int,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'databasesCount' in kwargs:
+            databases_count = kwargs['databasesCount']
+        if 'dropletsCount' in kwargs:
+            droplets_count = kwargs['dropletsCount']
+        if 'imagesCount' in kwargs:
+            images_count = kwargs['imagesCount']
+        if 'totalResourceCount' in kwargs:
+            total_resource_count = kwargs['totalResourceCount']
+        if 'volumeSnapshotsCount' in kwargs:
+            volume_snapshots_count = kwargs['volumeSnapshotsCount']
+        if 'volumesCount' in kwargs:
+            volumes_count = kwargs['volumesCount']
+
         _setter("databases_count", databases_count)
         _setter("droplets_count", droplets_count)
         _setter("images_count", images_count)

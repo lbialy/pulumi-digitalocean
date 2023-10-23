@@ -112,7 +112,27 @@ class DropletArgs:
              user_data: Optional[pulumi.Input[str]] = None,
              volume_ids: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
              vpc_uuid: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'dropletAgent' in kwargs:
+            droplet_agent = kwargs['dropletAgent']
+        if 'gracefulShutdown' in kwargs:
+            graceful_shutdown = kwargs['gracefulShutdown']
+        if 'ipv6Address' in kwargs:
+            ipv6_address = kwargs['ipv6Address']
+        if 'privateNetworking' in kwargs:
+            private_networking = kwargs['privateNetworking']
+        if 'resizeDisk' in kwargs:
+            resize_disk = kwargs['resizeDisk']
+        if 'sshKeys' in kwargs:
+            ssh_keys = kwargs['sshKeys']
+        if 'userData' in kwargs:
+            user_data = kwargs['userData']
+        if 'volumeIds' in kwargs:
+            volume_ids = kwargs['volumeIds']
+        if 'vpcUuid' in kwargs:
+            vpc_uuid = kwargs['vpcUuid']
+
         _setter("image", image)
         _setter("size", size)
         if backups is not None:
@@ -519,7 +539,39 @@ class _DropletState:
              vcpus: Optional[pulumi.Input[int]] = None,
              volume_ids: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
              vpc_uuid: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'createdAt' in kwargs:
+            created_at = kwargs['createdAt']
+        if 'dropletAgent' in kwargs:
+            droplet_agent = kwargs['dropletAgent']
+        if 'dropletUrn' in kwargs:
+            droplet_urn = kwargs['dropletUrn']
+        if 'gracefulShutdown' in kwargs:
+            graceful_shutdown = kwargs['gracefulShutdown']
+        if 'ipv4Address' in kwargs:
+            ipv4_address = kwargs['ipv4Address']
+        if 'ipv4AddressPrivate' in kwargs:
+            ipv4_address_private = kwargs['ipv4AddressPrivate']
+        if 'ipv6Address' in kwargs:
+            ipv6_address = kwargs['ipv6Address']
+        if 'priceHourly' in kwargs:
+            price_hourly = kwargs['priceHourly']
+        if 'priceMonthly' in kwargs:
+            price_monthly = kwargs['priceMonthly']
+        if 'privateNetworking' in kwargs:
+            private_networking = kwargs['privateNetworking']
+        if 'resizeDisk' in kwargs:
+            resize_disk = kwargs['resizeDisk']
+        if 'sshKeys' in kwargs:
+            ssh_keys = kwargs['sshKeys']
+        if 'userData' in kwargs:
+            user_data = kwargs['userData']
+        if 'volumeIds' in kwargs:
+            volume_ids = kwargs['volumeIds']
+        if 'vpcUuid' in kwargs:
+            vpc_uuid = kwargs['vpcUuid']
+
         if backups is not None:
             _setter("backups", backups)
         if created_at is not None:
@@ -969,7 +1021,7 @@ class Droplet(pulumi.CustomResource):
 
         # Create a new Web Droplet in the nyc2 region
         web = digitalocean.Droplet("web",
-            image="ubuntu-18-04-x64",
+            image="ubuntu-20-04-x64",
             region="nyc2",
             size="s-1vcpu-1gb")
         ```
@@ -1040,7 +1092,7 @@ class Droplet(pulumi.CustomResource):
 
         # Create a new Web Droplet in the nyc2 region
         web = digitalocean.Droplet("web",
-            image="ubuntu-18-04-x64",
+            image="ubuntu-20-04-x64",
             region="nyc2",
             size="s-1vcpu-1gb")
         ```

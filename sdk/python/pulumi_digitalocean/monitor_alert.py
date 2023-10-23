@@ -78,7 +78,9 @@ class MonitorAlertArgs:
              enabled: Optional[pulumi.Input[bool]] = None,
              entities: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
              tags: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("alerts", alerts)
         _setter("compare", compare)
         _setter("description", description)
@@ -287,7 +289,9 @@ class _MonitorAlertState:
              uuid: Optional[pulumi.Input[str]] = None,
              value: Optional[pulumi.Input[float]] = None,
              window: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if alerts is not None:
             _setter("alerts", alerts)
         if compare is not None:

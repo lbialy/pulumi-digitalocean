@@ -47,7 +47,9 @@ class CustomImageArgs:
              distribution: Optional[pulumi.Input[str]] = None,
              name: Optional[pulumi.Input[str]] = None,
              tags: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         _setter("regions", regions)
         _setter("url", url)
         if description is not None:
@@ -200,7 +202,17 @@ class _CustomImageState:
              tags: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
              type: Optional[pulumi.Input[str]] = None,
              url: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'createdAt' in kwargs:
+            created_at = kwargs['createdAt']
+        if 'imageId' in kwargs:
+            image_id = kwargs['imageId']
+        if 'minDiskSize' in kwargs:
+            min_disk_size = kwargs['minDiskSize']
+        if 'sizeGigabytes' in kwargs:
+            size_gigabytes = kwargs['sizeGigabytes']
+
         if created_at is not None:
             _setter("created_at", created_at)
         if description is not None:

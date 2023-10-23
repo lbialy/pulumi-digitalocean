@@ -60,7 +60,17 @@ class VolumeArgs:
              name: Optional[pulumi.Input[str]] = None,
              snapshot_id: Optional[pulumi.Input[str]] = None,
              tags: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'filesystemType' in kwargs:
+            filesystem_type = kwargs['filesystemType']
+        if 'initialFilesystemLabel' in kwargs:
+            initial_filesystem_label = kwargs['initialFilesystemLabel']
+        if 'initialFilesystemType' in kwargs:
+            initial_filesystem_type = kwargs['initialFilesystemType']
+        if 'snapshotId' in kwargs:
+            snapshot_id = kwargs['snapshotId']
+
         _setter("region", region)
         _setter("size", size)
         if description is not None:
@@ -253,7 +263,23 @@ class _VolumeState:
              snapshot_id: Optional[pulumi.Input[str]] = None,
              tags: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
              volume_urn: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'dropletIds' in kwargs:
+            droplet_ids = kwargs['dropletIds']
+        if 'filesystemLabel' in kwargs:
+            filesystem_label = kwargs['filesystemLabel']
+        if 'filesystemType' in kwargs:
+            filesystem_type = kwargs['filesystemType']
+        if 'initialFilesystemLabel' in kwargs:
+            initial_filesystem_label = kwargs['initialFilesystemLabel']
+        if 'initialFilesystemType' in kwargs:
+            initial_filesystem_type = kwargs['initialFilesystemType']
+        if 'snapshotId' in kwargs:
+            snapshot_id = kwargs['snapshotId']
+        if 'volumeUrn' in kwargs:
+            volume_urn = kwargs['volumeUrn']
+
         if description is not None:
             _setter("description", description)
         if droplet_ids is not None:

@@ -29,7 +29,9 @@ class AppArgs:
     def _configure(
              _setter: Callable[[Any, Any], None],
              spec: Optional[pulumi.Input['AppSpecArgs']] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+
         if spec is not None:
             _setter("spec", spec)
 
@@ -86,7 +88,21 @@ class _AppState:
              live_url: Optional[pulumi.Input[str]] = None,
              spec: Optional[pulumi.Input['AppSpecArgs']] = None,
              updated_at: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'activeDeploymentId' in kwargs:
+            active_deployment_id = kwargs['activeDeploymentId']
+        if 'appUrn' in kwargs:
+            app_urn = kwargs['appUrn']
+        if 'createdAt' in kwargs:
+            created_at = kwargs['createdAt']
+        if 'defaultIngress' in kwargs:
+            default_ingress = kwargs['defaultIngress']
+        if 'liveUrl' in kwargs:
+            live_url = kwargs['liveUrl']
+        if 'updatedAt' in kwargs:
+            updated_at = kwargs['updatedAt']
+
         if active_deployment_id is not None:
             _setter("active_deployment_id", active_deployment_id)
         if app_urn is not None:

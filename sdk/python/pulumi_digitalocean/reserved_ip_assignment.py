@@ -31,7 +31,13 @@ class ReservedIpAssignmentArgs:
              _setter: Callable[[Any, Any], None],
              droplet_id: pulumi.Input[int],
              ip_address: pulumi.Input[str],
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'dropletId' in kwargs:
+            droplet_id = kwargs['dropletId']
+        if 'ipAddress' in kwargs:
+            ip_address = kwargs['ipAddress']
+
         _setter("droplet_id", droplet_id)
         _setter("ip_address", ip_address)
 
@@ -80,7 +86,13 @@ class _ReservedIpAssignmentState:
              _setter: Callable[[Any, Any], None],
              droplet_id: Optional[pulumi.Input[int]] = None,
              ip_address: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'dropletId' in kwargs:
+            droplet_id = kwargs['dropletId']
+        if 'ipAddress' in kwargs:
+            ip_address = kwargs['ipAddress']
+
         if droplet_id is not None:
             _setter("droplet_id", droplet_id)
         if ip_address is not None:

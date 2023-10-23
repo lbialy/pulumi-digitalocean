@@ -35,7 +35,11 @@ class VolumeSnapshotArgs:
              volume_id: pulumi.Input[str],
              name: Optional[pulumi.Input[str]] = None,
              tags: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'volumeId' in kwargs:
+            volume_id = kwargs['volumeId']
+
         _setter("volume_id", volume_id)
         if name is not None:
             _setter("name", name)
@@ -119,7 +123,15 @@ class _VolumeSnapshotState:
              size: Optional[pulumi.Input[float]] = None,
              tags: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
              volume_id: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'createdAt' in kwargs:
+            created_at = kwargs['createdAt']
+        if 'minDiskSize' in kwargs:
+            min_disk_size = kwargs['minDiskSize']
+        if 'volumeId' in kwargs:
+            volume_id = kwargs['volumeId']
+
         if created_at is not None:
             _setter("created_at", created_at)
         if min_disk_size is not None:

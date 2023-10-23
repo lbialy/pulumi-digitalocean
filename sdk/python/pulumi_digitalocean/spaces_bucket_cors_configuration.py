@@ -37,7 +37,11 @@ class SpacesBucketCorsConfigurationArgs:
              bucket: pulumi.Input[str],
              cors_rules: pulumi.Input[Sequence[pulumi.Input['SpacesBucketCorsConfigurationCorsRuleArgs']]],
              region: pulumi.Input[str],
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'corsRules' in kwargs:
+            cors_rules = kwargs['corsRules']
+
         _setter("bucket", bucket)
         _setter("cors_rules", cors_rules)
         _setter("region", region)
@@ -103,7 +107,11 @@ class _SpacesBucketCorsConfigurationState:
              bucket: Optional[pulumi.Input[str]] = None,
              cors_rules: Optional[pulumi.Input[Sequence[pulumi.Input['SpacesBucketCorsConfigurationCorsRuleArgs']]]] = None,
              region: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'corsRules' in kwargs:
+            cors_rules = kwargs['corsRules']
+
         if bucket is not None:
             _setter("bucket", bucket)
         if cors_rules is not None:

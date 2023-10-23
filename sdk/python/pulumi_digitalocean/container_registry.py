@@ -35,7 +35,11 @@ class ContainerRegistryArgs:
              subscription_tier_slug: pulumi.Input[str],
              name: Optional[pulumi.Input[str]] = None,
              region: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'subscriptionTierSlug' in kwargs:
+            subscription_tier_slug = kwargs['subscriptionTierSlug']
+
         _setter("subscription_tier_slug", subscription_tier_slug)
         if name is not None:
             _setter("name", name)
@@ -119,7 +123,17 @@ class _ContainerRegistryState:
              server_url: Optional[pulumi.Input[str]] = None,
              storage_usage_bytes: Optional[pulumi.Input[int]] = None,
              subscription_tier_slug: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'createdAt' in kwargs:
+            created_at = kwargs['createdAt']
+        if 'serverUrl' in kwargs:
+            server_url = kwargs['serverUrl']
+        if 'storageUsageBytes' in kwargs:
+            storage_usage_bytes = kwargs['storageUsageBytes']
+        if 'subscriptionTierSlug' in kwargs:
+            subscription_tier_slug = kwargs['subscriptionTierSlug']
+
         if created_at is not None:
             _setter("created_at", created_at)
         if endpoint is not None:

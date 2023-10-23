@@ -59,7 +59,25 @@ class ProviderArgs:
              spaces_endpoint: Optional[pulumi.Input[str]] = None,
              spaces_secret_key: Optional[pulumi.Input[str]] = None,
              token: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'apiEndpoint' in kwargs:
+            api_endpoint = kwargs['apiEndpoint']
+        if 'httpRetryMax' in kwargs:
+            http_retry_max = kwargs['httpRetryMax']
+        if 'httpRetryWaitMax' in kwargs:
+            http_retry_wait_max = kwargs['httpRetryWaitMax']
+        if 'httpRetryWaitMin' in kwargs:
+            http_retry_wait_min = kwargs['httpRetryWaitMin']
+        if 'requestsPerSecond' in kwargs:
+            requests_per_second = kwargs['requestsPerSecond']
+        if 'spacesAccessId' in kwargs:
+            spaces_access_id = kwargs['spacesAccessId']
+        if 'spacesEndpoint' in kwargs:
+            spaces_endpoint = kwargs['spacesEndpoint']
+        if 'spacesSecretKey' in kwargs:
+            spaces_secret_key = kwargs['spacesSecretKey']
+
         if api_endpoint is None:
             api_endpoint = (_utilities.get_env('DIGITALOCEAN_API_URL') or 'https://api.digitalocean.com')
         if api_endpoint is not None:

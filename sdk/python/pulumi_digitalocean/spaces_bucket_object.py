@@ -92,7 +92,25 @@ class SpacesBucketObjectArgs:
              metadata: Optional[pulumi.Input[Mapping[str, pulumi.Input[str]]]] = None,
              source: Optional[pulumi.Input[str]] = None,
              website_redirect: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'cacheControl' in kwargs:
+            cache_control = kwargs['cacheControl']
+        if 'contentBase64' in kwargs:
+            content_base64 = kwargs['contentBase64']
+        if 'contentDisposition' in kwargs:
+            content_disposition = kwargs['contentDisposition']
+        if 'contentEncoding' in kwargs:
+            content_encoding = kwargs['contentEncoding']
+        if 'contentLanguage' in kwargs:
+            content_language = kwargs['contentLanguage']
+        if 'contentType' in kwargs:
+            content_type = kwargs['contentType']
+        if 'forceDestroy' in kwargs:
+            force_destroy = kwargs['forceDestroy']
+        if 'websiteRedirect' in kwargs:
+            website_redirect = kwargs['websiteRedirect']
+
         _setter("bucket", bucket)
         _setter("key", key)
         _setter("region", region)
@@ -406,7 +424,27 @@ class _SpacesBucketObjectState:
              source: Optional[pulumi.Input[str]] = None,
              version_id: Optional[pulumi.Input[str]] = None,
              website_redirect: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'cacheControl' in kwargs:
+            cache_control = kwargs['cacheControl']
+        if 'contentBase64' in kwargs:
+            content_base64 = kwargs['contentBase64']
+        if 'contentDisposition' in kwargs:
+            content_disposition = kwargs['contentDisposition']
+        if 'contentEncoding' in kwargs:
+            content_encoding = kwargs['contentEncoding']
+        if 'contentLanguage' in kwargs:
+            content_language = kwargs['contentLanguage']
+        if 'contentType' in kwargs:
+            content_type = kwargs['contentType']
+        if 'forceDestroy' in kwargs:
+            force_destroy = kwargs['forceDestroy']
+        if 'versionId' in kwargs:
+            version_id = kwargs['versionId']
+        if 'websiteRedirect' in kwargs:
+            website_redirect = kwargs['websiteRedirect']
+
         if acl is not None:
             _setter("acl", acl)
         if bucket is not None:

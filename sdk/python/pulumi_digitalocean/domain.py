@@ -32,7 +32,11 @@ class DomainArgs:
              _setter: Callable[[Any, Any], None],
              name: pulumi.Input[str],
              ip_address: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'ipAddress' in kwargs:
+            ip_address = kwargs['ipAddress']
+
         _setter("name", name)
         if ip_address is not None:
             _setter("ip_address", ip_address)
@@ -92,7 +96,13 @@ class _DomainState:
              ip_address: Optional[pulumi.Input[str]] = None,
              name: Optional[pulumi.Input[str]] = None,
              ttl: Optional[pulumi.Input[int]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'domainUrn' in kwargs:
+            domain_urn = kwargs['domainUrn']
+        if 'ipAddress' in kwargs:
+            ip_address = kwargs['ipAddress']
+
         if domain_urn is not None:
             _setter("domain_urn", domain_urn)
         if ip_address is not None:

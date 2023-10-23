@@ -47,7 +47,13 @@ class DatabaseConnectionPoolArgs:
              size: pulumi.Input[int],
              name: Optional[pulumi.Input[str]] = None,
              user: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'clusterId' in kwargs:
+            cluster_id = kwargs['clusterId']
+        if 'dbName' in kwargs:
+            db_name = kwargs['dbName']
+
         _setter("cluster_id", cluster_id)
         _setter("db_name", db_name)
         _setter("mode", mode)
@@ -190,7 +196,17 @@ class _DatabaseConnectionPoolState:
              size: Optional[pulumi.Input[int]] = None,
              uri: Optional[pulumi.Input[str]] = None,
              user: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'clusterId' in kwargs:
+            cluster_id = kwargs['clusterId']
+        if 'dbName' in kwargs:
+            db_name = kwargs['dbName']
+        if 'privateHost' in kwargs:
+            private_host = kwargs['privateHost']
+        if 'privateUri' in kwargs:
+            private_uri = kwargs['privateUri']
+
         if cluster_id is not None:
             _setter("cluster_id", cluster_id)
         if db_name is not None:

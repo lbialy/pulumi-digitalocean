@@ -48,7 +48,13 @@ class DatabaseReplicaArgs:
              region: Optional[pulumi.Input[Union[str, 'Region']]] = None,
              size: Optional[pulumi.Input[Union[str, 'DatabaseSlug']]] = None,
              tags: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'clusterId' in kwargs:
+            cluster_id = kwargs['clusterId']
+        if 'privateNetworkUuid' in kwargs:
+            private_network_uuid = kwargs['privateNetworkUuid']
+
         _setter("cluster_id", cluster_id)
         if name is not None:
             _setter("name", name)
@@ -206,7 +212,17 @@ class _DatabaseReplicaState:
              uri: Optional[pulumi.Input[str]] = None,
              user: Optional[pulumi.Input[str]] = None,
              uuid: Optional[pulumi.Input[str]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'clusterId' in kwargs:
+            cluster_id = kwargs['clusterId']
+        if 'privateHost' in kwargs:
+            private_host = kwargs['privateHost']
+        if 'privateNetworkUuid' in kwargs:
+            private_network_uuid = kwargs['privateNetworkUuid']
+        if 'privateUri' in kwargs:
+            private_uri = kwargs['privateUri']
+
         if cluster_id is not None:
             _setter("cluster_id", cluster_id)
         if database is not None:

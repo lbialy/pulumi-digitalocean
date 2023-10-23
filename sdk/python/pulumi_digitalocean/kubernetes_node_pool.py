@@ -68,7 +68,19 @@ class KubernetesNodePoolArgs:
              node_count: Optional[pulumi.Input[int]] = None,
              tags: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
              taints: Optional[pulumi.Input[Sequence[pulumi.Input['KubernetesNodePoolTaintArgs']]]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'clusterId' in kwargs:
+            cluster_id = kwargs['clusterId']
+        if 'autoScale' in kwargs:
+            auto_scale = kwargs['autoScale']
+        if 'maxNodes' in kwargs:
+            max_nodes = kwargs['maxNodes']
+        if 'minNodes' in kwargs:
+            min_nodes = kwargs['minNodes']
+        if 'nodeCount' in kwargs:
+            node_count = kwargs['nodeCount']
+
         _setter("cluster_id", cluster_id)
         _setter("size", size)
         if auto_scale is not None:
@@ -273,7 +285,21 @@ class _KubernetesNodePoolState:
              size: Optional[pulumi.Input[Union[str, 'DropletSlug']]] = None,
              tags: Optional[pulumi.Input[Sequence[pulumi.Input[str]]]] = None,
              taints: Optional[pulumi.Input[Sequence[pulumi.Input['KubernetesNodePoolTaintArgs']]]] = None,
-             opts: Optional[pulumi.ResourceOptions]=None):
+             opts: Optional[pulumi.ResourceOptions]=None,
+             **kwargs):
+        if 'actualNodeCount' in kwargs:
+            actual_node_count = kwargs['actualNodeCount']
+        if 'autoScale' in kwargs:
+            auto_scale = kwargs['autoScale']
+        if 'clusterId' in kwargs:
+            cluster_id = kwargs['clusterId']
+        if 'maxNodes' in kwargs:
+            max_nodes = kwargs['maxNodes']
+        if 'minNodes' in kwargs:
+            min_nodes = kwargs['minNodes']
+        if 'nodeCount' in kwargs:
+            node_count = kwargs['nodeCount']
+
         if actual_node_count is not None:
             _setter("actual_node_count", actual_node_count)
         if auto_scale is not None:
